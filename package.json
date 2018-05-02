@@ -1,0 +1,13 @@
+{
+  "name": "mathprofi-wrap",
+  "version": "1.0.0",
+  "description": "Mathprofi Wrap",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Berrigan",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.18.13"
+  }
+}
