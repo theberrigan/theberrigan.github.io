@@ -1,29 +1,24 @@
 (() => {
     class Browser {
-        get config () {
-            return {
-                domain: 'mathprofi.net',
-                protocol: 'https'
-            };
+        get domain () {
+            return 'mathprofi.net';
+        }
+
+        get protocol () {
+            return 'https';
         }
 
         constructor () {
-            this.navNode = document.body.querySelector('nav');
+            this.els = {
+                unitInfo: document.body.querySelector('#panel > #unit-info'),
+                unitNumber: document.body.querySelector('#panel > #unit-info > #unit-number'),
+                unitName: document.body.querySelector('#panel > #unit-info > #unit-name'),
+                continue: document.body.querySelector('#panel > #continue'),
+                browser: document.body.querySelector('#browser'),
+                curLink: null,
+                lastUnit: null
+            };
 
-            this.unitInfoNode = document.body.querySelector('#unit-info');
-            this.unitNumberNode = this.unitInfoNode.querySelector(':scope > #unit-number');
-            this.unitNameNode = this.unitInfoNode.querySelector(':scope > #unit-name');
-
-            this.unitPrevNode = document.body.querySelector('#prev-unit');
-            this.unitNextNode = document.body.querySelector('#next-unit');
-            this.continueNode = document.body.querySelector('#continue');
-
-            this.browserNode = document.body.querySelector('#browser');
-
-            this.unitLinks = {};
-            this.currentLinkNode = null;
-            this.lastUnitNode = null;
-            this.expectedUrl = null;
             this.isNavActive = false;
             this.unitsCount = 0;
 
@@ -67,7 +62,13 @@
                     
                     unit.isExternal && (aNode.target = '_blank');
 
-                    aNode.href = this.fillUrl(unit.url);
+                    aNode.rel = 'noopener noreferrer';
+
+                    aNode.href = (
+                        unit.url
+                            .replace(/\{\s*protocol\s*\}/ig, this.protocol)
+                            .replace(/\{\s*domain\s*\}/ig, this.domain)
+                    );
 
                     aNode.linkData = {
                         title: unit.title,
@@ -82,13 +83,11 @@
                     if (!unit.isExternal && unit.isUnit !== false) {
                         const unitName = aNode.linkData.unitName = this.extractUnit(aNode.href);
 
-                        unitName == unitNameToRestore && (this.lastUnitNode = aNode);
+                        unitName == unitNameToRestore && (this.els.lastUnit = aNode);
                         unitName == unitNameToLoad && (unitToLoad = aNode);
 
                         aNode.innerHTML = `<strong>${ this.zeroPad(++this.unitsCount) }</strong>. ${ unit.title.trim() }`;
                         aNode.linkData.unitNumber = this.unitsCount;
-
-                        this.unitLinks[ unitName ] = aNode.linkData;
 
                         unitNodes.push(aNode);
                     } else {
@@ -107,7 +106,7 @@
 
             const linksCount = navLinks.length;
 
-            this.unitInfoNode.querySelector(':scope > #unit-count').innerText = String(this.unitsCount);
+            this.els.unitInfo.querySelector(':scope > #unit-count').innerText = String(this.unitsCount);
 
             document.querySelector('#panel > .button-nav').addEventListener('click', (e) => {
                 e.deactivateNav = false;                
@@ -143,16 +142,11 @@
                 }
             });
 
-            this.continueNode.addEventListener('click', () => this.lastUnitNode && this.browse(this.lastUnitNode));
+            this.els.continue.addEventListener('click', () => this.els.lastUnit && this.browse(this.els.lastUnit));
 
-            this.unitPrevNode.addEventListener('click', () => {
-                const nodeNumber = this.getPrevUnitNumber();
-                nodeNumber !== null && this.browse(unitNodes[ nodeNumber ]);
-            });
-
-            this.unitNextNode.addEventListener('click', () => {
-                const nodeNumber = this.getNextUnitNumber();
-                nodeNumber !== null && this.browse(unitNodes[ nodeNumber ]);
+            document.querySelectorAll('#panel > .button-direction').forEach((el) => {
+                const dir = el.dataset.dir;
+                (this.els[ dir ] = el).addEventListener('click', () => this.browse(unitNodes[ this.getSiblingUnit(dir) ]));
             });
 
             return unitToLoad || defaultUnit;
@@ -160,14 +154,6 @@
 
         zeroPad (num) {
             return `00${ num }`.slice(-3);
-        }
-
-        fillUrl (url) {
-            return (
-                url
-                    .replace(/\{\s*protocol\s*\}/ig, this.config.protocol)
-                    .replace(/\{\s*domain\s*\}/ig, this.config.domain)
-            );
         }
 
         extractUnit (url) {
@@ -180,68 +166,58 @@
         }
 
         initBrowser (unitToLoad) {
-            this.browserNode.addEventListener('load', () => {
-                console.log('Navigated to:', this.browserNode.src, this.expectedUrl);
-            });
+            // this.els.browser.addEventListener('load', () => {
+            //     console.log('Navigated to:', this.els.browser.src);
+            // });
 
             this.browse(unitToLoad);
         }
 
-        browse (aNode) {
-            this.browserNode.src = this.expectedUrl = aNode.href;
-            document.title = aNode.linkData.title;
-            this.currentLinkNode && this.currentLinkNode.classList.remove('active');
-            (this.currentLinkNode = aNode).classList.add('active');
-            this.setCurrentUnit(aNode);
-        }
+        browse (el = null) {
+            if (!el || !el.linkData) return;
+            
+            const 
+                url = new URL(window.location.href),
+                { title, unitNumber, unitName } = el.linkData;
 
-        setCurrentUnit (aNode) {
-            const url = new URL(window.location.href);
+            this.els.browser.src = el.href;
+            document.title = title;
 
-            const { title, unitNumber, unitName } = (aNode.linkData || {});
+            this.els.curLink && this.els.curLink.classList.remove('active');
+            (this.els.curLink = el).classList.add('active');
 
             if (unitName) {
-                this.continueNode.setAttribute('hidden', 'hidden');
-
-                this.lastUnitNode = aNode;
-                window.localStorage.setItem('lastUnit', unitName);
-
                 url.searchParams.set('unit', unitName);
 
-                this.unitNameNode.innerText = title;
-                this.unitNumberNode.innerText = String(unitNumber);
+                this.els.lastUnit = el;
+                window.localStorage.setItem('lastUnit', unitName);
 
-                this.unitPrevNode.classList[ this.getPrevUnitNumber() == null ? 'add' : 'remove' ]('button-disabled');
-                this.unitNextNode.classList[ this.getNextUnitNumber() == null ? 'add' : 'remove' ]('button-disabled');
+                this.els.unitName.innerText = title;
+                this.els.unitNumber.innerText = String(unitNumber);
+                this.els.unitName.href = el.href;
 
-                this.unitInfoNode.removeAttribute('hidden');
-                this.unitPrevNode.removeAttribute('hidden');
-                this.unitNextNode.removeAttribute('hidden');
+                this.els.prev.classList[ this.getSiblingUnit('prev') == null ? 'add' : 'remove' ]('button-disabled');
+                this.els.next.classList[ this.getSiblingUnit('next') == null ? 'add' : 'remove' ]('button-disabled');
+
+                this.els.continue.hidden = true;
+                this.els.prev.hidden = this.els.next.hidden = this.els.unitInfo.hidden = false;
+                
             } else {
-                this.unitInfoNode.setAttribute('hidden', 'hidden');
-                this.unitPrevNode.setAttribute('hidden', 'hidden');
-                this.unitNextNode.setAttribute('hidden', 'hidden');
-
                 url.searchParams.delete('unit');
 
-                this.unitNameNode.innerText = '';
-                this.unitNumberNode.innerText = '';
+                this.els.prev.hidden = this.els.next.hidden = this.els.unitInfo.hidden = true;
+                this.els.continue.hidden = !this.els.lastUnit;
 
-                this.lastUnitNode ? this.continueNode.removeAttribute('hidden') : this.continueNode.setAttribute('hidden', 'hidden');
+                this.els.unitName.innerText = this.els.unitNumber.innerText = '';
+                this.els.unitName.href = '#';
             }
 
-            window.history.pushState(null, null, url.href);  // + localStorage
+            window.history.pushState(null, null, url.href);
         }
 
-        getPrevUnitNumber () {
-            const nodeNumber = this.lastUnitNode && this.lastUnitNode.linkData.unitNumber || 0;
-            return nodeNumber && nodeNumber > 1 ? (nodeNumber - 2) : null;
-        }
-
-        getNextUnitNumber () {
-            const nodeNumber = this.lastUnitNode && this.lastUnitNode.linkData.unitNumber || 0;
-            return nodeNumber && nodeNumber < this.unitsCount ? nodeNumber : null;  
-            
+        getSiblingUnit (dir) {
+            const n = this.els.lastUnit && this.els.lastUnit.linkData.unitNumber || null;
+            return n ? (dir == 'prev' && n > 1) ? (n - 2) : (dir == 'next' && n < this.unitsCount ? n : null) : null;  
         }
     }
 
