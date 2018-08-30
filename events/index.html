@@ -11,7 +11,7 @@
             setTimeout(function () {
                 var console = document.getElementById('console');
                 var input = document.getElementById('input');
-                var eventNames = [ 'compositionstart', 'compositionend' ];
+                var eventNames = [ 'keydown', 'keypress', 'keyup', 'input', 'paste', 'cut', 'propertychange', 'compositionstart', 'compositionend' ];
 
                 function log (message) {
                     if (!console) {
