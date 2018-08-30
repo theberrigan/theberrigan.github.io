@@ -133,7 +133,7 @@ strong {
     white-space: nowrap;
     vertical-align: middle;
     line-height: 1em;
-    padding: 18px 18px 0;
+    margin: 18px 0 0 18px;
 }
 
 /**/

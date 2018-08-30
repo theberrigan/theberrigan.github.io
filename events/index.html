@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <input type="text" id="input">
+    <div style="display: block; font-family: monospace; font-size: 14px;" id="console"></div>
+    <script type="text/javascript">
+        (function () {
+            setTimeout(function () {
+                var console = document.getElementById('console');
+                var input = document.getElementById('input');
+                var eventNames = [ 'compositionstart', 'compositionend' ];
+
+                function log (message) {
+                    if (!console) {
+                        return;
+                    }
+
+                    console.innerText += '\n' + message;
+                }
+
+                function addEventListener (input, eventName, listener) {
+                    if ('addEventListener' in input) {
+                        input.addEventListener(eventName, listener);
+                    } else if ('attachEvent' in input) {
+                        input.attachEvent('on' + eventName, listener);                
+                    } else {
+                        log('dunno how to add event listener');
+                    }
+                }
+
+                for (var i = 0; i < eventNames.length; i++) {
+                    addEventListener(input, eventNames[i], function (e) {
+                        log(JSON.stringify({
+                            type: e.type,
+                            which: e.which,
+                            charCode: e.charCode,
+                            keyCode: e.keyCode,
+                            code: e.code,
+                            key: e.key,
+                            metaKey: e.metaKey,
+                            ctrlKey: e.ctrlKey,
+                            shiftKey: e.shiftKey,
+                            altKey: e.altKey,
+                            repeat: e.repeat,
+                            altLeft: e.altLeft,
+                            shiftLeft: e.shiftLeft,
+                            ctrlLeft: e.ctrlLeft,
+                            cancelBubble: e.cancelBubble   // !!! IE8
+                        }));
+                    });
+                }
+            }, 100);
+        })();
+    </script>
+</body>
+</html>
