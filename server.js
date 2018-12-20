@@ -6,5 +6,6 @@ browserSync.init({
     server: "./projects/",
     files: './projects/**',
     notify: false,
-    port: 9137
+    port: 9137,
+    open: false
 });

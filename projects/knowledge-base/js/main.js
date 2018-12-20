@@ -338,7 +338,6 @@ const showArticle = (() => {
     };
 
     return articleId => {
-        console.log(1);
         if (
             !(articleId in navMap) || 
             currentArticle && currentArticle.id === articleId || 
@@ -361,23 +360,169 @@ const showArticle = (() => {
                 articleEl.id = articleId;
                 articleEl.innerHTML = articleHTML;
 
-                article.el = articleEl;
-                articlesEl.appendChild(articleEl);
+                highlightListings(articleEl, () => {
+                    articlesEl.appendChild(articleEl);
 
-                if (loadingArticle === article) {
-                    switchArticle(article);
-                    history.replaceState(null, article.title, '#' + articleId);
-                }   
+                    article.el = articleEl;
+
+                    if (loadingArticle === article) {
+                        switchArticle(article);
+                        history.replaceState(null, article.title, '#' + articleId);
+
+                        loadingArticle = null;
+                    }                    
+                }); 
             })
             .fail(error => console.warn('Can`t load article:', error));
     };
 })(); 
+
+const highlightCode = (() => {
+    const 
+        h = Prism.highlight,
+        l = Prism.languages;
+
+    return (code, lang) => {
+        return h(code, l[lang], lang);
+    };
+})();
+
+const highlightListings = (() => {
+    const commentRegexp = /^(<listing(?:\s+[\w\-]+="[^"]+")*>)([\s\S]*)<\/listing>$/i;
+    const attrRegexp = /([\w\-]+)="([^"]+)"/ig;
+    const indentRegexp = /^\s*/;
+
+    const walker = (parentNode, comments = []) => {
+        if (!(parentNode instanceof HTMLElement)) {
+            return;
+        }
+
+        parentNode.childNodes.forEach(node => {
+            if (node.nodeType !== 8) {  // not a comment node
+                walker(node, comments);
+                return;
+            }
+
+            const commentText = node.nodeValue || '';
+
+            let matches = commentText.match(commentRegexp);
+
+            if (matches) {
+                const comment = { 
+                    node
+                };
+
+                // ------
+
+                let lines = matches[2].split('\n');
+
+                const 
+                    listingTag = matches[1],
+                    attrs = {};
+
+                while (matches = attrRegexp.exec(listingTag)) {
+                    attrs[matches[1]] = matches[2];
+                }
+
+                if (!attrs.lang || !Prism.languages[attrs.lang]) {
+                    console.warn('Incorrect listing \'lang\'-attribute:', node);
+                    return;
+                }
+
+                // ------
+
+                while (lines.length && !lines[0].trim()) {
+                    lines.shift();
+                }
+
+                let len;
+
+                while ((len = lines.length) && !lines[len - 1].trim()) {
+                    lines.pop();
+                }
+
+                if (!lines.length) {
+                    return;
+                }
+
+                let minIndent = null;
+
+                lines = lines.map(line => {
+                    let spaces = 0,
+                        tabs = 0;
+
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+
+                        if (char === ' ') {
+                            spaces++
+                        } else if (char === '\t') {
+                            tabs++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    spaces += tabs * 4;
+                    (minIndent === null || minIndent > spaces) && (minIndent = spaces);
+
+                    return tabs ? line.replace(indentRegexp, ' '.repeat(spaces)) : line;
+                });
+
+                minIndent && (lines = lines.map(line => line.slice(minIndent)));
+
+                // --------------
+
+                const preEl = document.createElement('pre');
+                preEl.className = 'line-numbers';                
+
+                const codeEl = document.createElement('code');
+                codeEl.className = 'language-' + attrs.lang;
+
+                codeEl.textContent = lines.join('\n');
+
+                preEl.appendChild(codeEl);
+
+                comment.pre = preEl;
+
+                // ------
+
+                comments.push(comment);
+            }
+        });
+
+        return comments;
+    };
+
+    return (node, callback) => {
+        const comments = walker(node);
+
+        if (!comments.length) {
+            return callback();
+        }
+
+        comments.forEach(comment => {
+            comment.node.parentNode.insertBefore(comment.pre, comment.node);
+            comment.node.remove();
+        });
+
+        Prism.highlightAllUnder(node, true, () => callback());
+    };
+})();
 
 /*
 Отдельные темы
 - Строки
 - Числа
 - Дата и время
+- Little endian big endian
+- представление целых и дробных чисел в компе
+*/
+
+/*
+<!--<listing lang="cpp|js|json|...">
+    code...                        
+</listing>-->
 */
 const init = () => {
     articlesEl = document.body.querySelector('.articles');
