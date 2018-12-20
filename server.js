@@ -3,7 +3,8 @@
 const browserSync = require('browser-sync').create();
 
 browserSync.init({
-    server: "./",
-    files: './**',
-    notify: false
+    server: "./projects/",
+    files: './projects/**',
+    notify: false,
+    port: 9137
 });

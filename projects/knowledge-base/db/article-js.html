@@ -1,0 +1,969 @@
+
+<h1>Javascript</h1>
+<pre>
+    // Чтиво:
+    // - Шаблоны проектирования: https://github.com/sadcitizen/javascript-design-patterns
+    // - Некоторые разделы (ООП): https://learn.javascript.ru/
+    // - K. Simpson - Async & Performance (и другие книги из серии; RUS: https://github.com/devSchacht/You-Dont-Know-JS/tree/master/async%20%26%20performance)
+    // - N. Zakas - Javascript. Оптимизация производительности
+    // - Приёмы объектно-ориентированного проектирования. Паттерны проектирования
+    // - Алгоритмические трюки для программистов
+    // - Р. Стивенс - Алгоритмы. Теория и практическое применение
+    // - Визуализация алгоритмов: https://visualgo.net/en
+    // - https://www.keycdn.com/blog/javascript-performance
+    // - http://www.monitis.com/blog/30-tips-to-improve-javascript-performance/
+    // - https://github.com/davidmarkclements/v8-perf
+    // - https://modernweb.com/what-every-javascript-developer-should-know-about-floating-points/
+    // - Математика (числа): https://habr.com/post/312880/
+
+
+    // Библиотеки, в которых можно подсмотреть интересные алгоритмы:
+    // - GASP (как автор порется с ошибками дробной части)
+    // - hammer.js (наследование классов)
+    // - babel.js (как выглядит ООП после компиляции ES6 -> ES5)
+    // - tsc.js (компилятор Typescript; алгоритмы и функции)
+    // - csstree.js (алгоритмы и способы оптимизации)
+    // - pixi.js (математика, оптимизация, алгоритмы)
+    // - infernoj.s (высокая производительность; infernojs.org)
+    // - radi.js (очень высокая производительность; https://medium.com/@marcisbee/how-i-built-super-fast-js-framework-faster-than-react-ea99f0d03150)
+    // - 
+
+
+
+    // ----------------------------------------
+    // ОПТИМИЗАЦИЯ И ВЫСОКАЯ ПРОИЗВОДИТЕЛЬНОСТЬ
+    // ----------------------------------------
+
+
+    // 1. Нечувствительная к регистру проверка символа
+    // ---------------------------
+    const eCode = 'e'.charCodeAt(0);
+    console.log(('E'.charCodeAt(0) | 32) === eCode); // true
+    console.log(('e'.charCodeAt(0) | 32) === eCode); // true
+
+
+    // 2. Пропуск BOM:
+    // -----------------------
+    function firstCharOffset(source) {
+        // detect BOM (https://en.wikipedia.org/wiki/Byte_order_mark)
+        if (source.charCodeAt(0) === 0xFEFF || // UTF-16BE
+            source.charCodeAt(0) === 0xFFFE) { // UTF-16LE
+            return 1;
+        }
+        return 0;
+    }
+
+
+    // 3. Высокопроизводительное хранение больших списков ПОЛОЖИТЕЛЬНЫХ чисел. В одной ячейке массива хранятся несколько чисел.
+    // -----------------------
+    const storage = new Uint32Array(1024);
+    const num1 = 123, num2 = 456;
+    storage[0] = (num1 << 16) | num2;          // в ячейке хранится 32-битовое число, в 16 старших байтов хранится число num1, а в 16 младших - num2
+    console.log(storage[0] & 65535);           // 456 (num2)
+    console.log((storage[0] >> 16) & 65535);   // 123 (num1)
+
+
+    // 4. Когда нужно только при необходимости вызвать тяжёлую функцию и запомнить её результат
+    // -----------------------
+    const memoize = fn => {
+        let value;
+
+        return () => {
+            if (fn) {
+                value = fn();
+                fn = null;
+            }
+
+            return value;
+        };
+    };
+
+    // Использование
+    let getNum = memoize(() => 5);
+
+    // При первом вызове в замыкании вызывается fn для вычисления значения, оно закешируется и вернётся
+    getNum();
+
+    // При последующих вызовах будет возвращаться закешированное значение
+    getNum();
+    getNum();
+    getNum();
+
+
+    // 5. [ОПАСНАЯ ФУНКЦИЯ] Отбрасывание дробной части
+    // -----------------------
+    num = 5.56 | 0;
+
+
+
+
+    // --------------------------
+    // ШАБЛОНЫ ПРОЕКТИРОВАНИЯ ООП
+    // - https://medium.com/javascript-scene/javascript-factory-functions-vs-constructor-functions-vs-classes-2f22ceddf33e
+    // --------------------------
+
+
+    // Обёртка класса с методом клонирования инстанса
+    // -----------------------------------------------
+    var Proto = (function() {
+        function Proto(person) {
+            this.person = person;
+        }
+
+        Proto.prototype.clone = function() {
+            var f = function() {};
+            f.prototype = this.person;
+            return new f();
+        };
+
+        return Proto;
+    })();
+
+    const proto = new Proto();
+    const proto2 = proto.clone();
+
+
+    // [creational pattern: namespace]
+    // -------------------------------
+    var Namespace = { /* ... */ };
+
+    var App = {};
+    Namespace.create(App, 'configs.network', {
+        host: '127.0.0.1',
+        port: 80
+    });
+
+    console.log(App.configs.network.host);  // '127.0.0.1'
+
+
+    // [creational pattern: singleton] 
+    // Статический синглтон с поддержкой публичных/приватных свойств/методов
+    // ---------------------------------------------------------------------
+    var ClosureStaticSingleton = (function() {
+        var instance;
+
+        function createInstance() {
+            // Приватные свойства
+            // Приватные методы
+
+            return {
+                // Публичные свойства
+                // Публичные методы
+            };
+        }
+
+        return {
+            getInstance: function() {
+                return instance || (instance = createInstance());
+            }
+        };
+    })();
+
+    ClosureStaticSingleton.getInstance().publicMethod();
+
+
+
+    // [creational pattern: singleton]
+    // В первой строке создаётся целевой синглтон, но var Singleton принимает Singleton из замыкания.
+    // У Singleton из самыкания есть преимущества, потому что он имеет приватные свойства/методы, например.
+    // ----------------------------------
+    var Singleton = new(function() {
+        var instance;
+
+        // Конструктор
+        function Singleton() {
+            return instance || (instance = this);
+        }
+
+        // Приватные свойства
+        // Приватные методы
+
+        // Публичные свойства
+        // Публичные методы
+        Singleton.prototype.toString = function() {
+            return '[object Singleton]';
+        };
+
+        return Singleton;
+    });
+
+    new Singleton().publicMethod();
+    console.log(new Singleton() === new Singleton());  // true
+
+
+    // [creational pattern: concrete factory]
+    // Здесь для конкретного класса создаётся его собственная фабрика
+    // --------------------------------------------------------------
+    function Vendor(name) {
+        this.name = name;
+     
+        this.say = function () {
+            console.log("I am vendor " + name);
+        };
+    }
+     
+    function VendorFactory() { 
+        instances = [];
+
+        this.create = function(name) {
+            var instance = new Vendor(name);
+            instances.push(instance);
+            return instance;
+        };
+    }
+
+    var vendorFactory = new VendorFactory();
+    vendorFactory.create('John').say();
+
+
+    // [creational pattern: abstract factory]
+    // --------------------------------------
+    // TODO ...
+
+
+    // [creational pattern: builder]
+    // -----------------------------
+    // Product
+    function Product() {
+        var _a, _b, _this = this;
+        
+        this.setA = function(val) {
+            _a = val;
+        };
+
+        this.getA = function() {
+            return _a;
+        };
+
+        this.setB = function(val) {
+            _b = val;
+        };
+
+        this.getB = function() {
+            return _b;
+        };
+    }
+
+    // Abstract Builder
+    function ProductBuilder() {
+        var _this = this;
+
+        this.product = new Product();
+        
+        this.getProduct = function() {
+            return _this.product;
+        };
+        
+        this.buildA = function(val) {};
+        this.buildB = function(val) {};
+    }
+
+    // Concrete Builder A
+    function ProductBuilderA() {
+        ProductBuilder.call(this);
+        this.buildA = function() { this.product.setA('builderA - product.a'); };
+        this.buildB = function() { this.product.setB('builderA - product.b'); };
+    }
+
+    // Concrete Builder B
+    function ProductBuilderB() {
+        ProductBuilder.call(this);  
+        this.buildA = function() { this.product.setA('builderB - product.a'); };
+        this.buildB = function() { this.product.setB('builderB - product.b'); };
+    }
+
+    // Director
+    function Director() {
+        var productBuilder;
+        
+        this.setProductBuilder = function(builder) {
+            productBuilder = builder;
+        };
+
+        this.getProduct = function() {
+            return productBuilder.getProduct();
+        };
+        
+        this.constructProduct = function() {
+            productBuilder.buildA();
+            productBuilder.buildB();
+        };
+    }
+
+    var waiter = new Director();
+
+    [ ProductBuilderA, ProductBuilderB ].forEach(BuilderClass => {
+        var productBuilder = new BuilderClass();
+        waiter.setProductBuilder(productBuilder);
+        waiter.constructProduct();
+        var product = waiter.getProduct();
+        console.log(product.getA(), product.getB());
+    });
+
+
+
+    // [structural pattern: adapter]
+    // Если есть сущности двух разных типов, но у них есть какие-то одинаковые свойства/методы, 
+    // но они имеют разное название. Нужно обернуть сущности специальным интерфейсом, чтобы иметь
+    // унифицированный доступ к этм свойствам/методам.
+    // ------------------------------------------------------------------------------------------
+    class Englishman {
+        constructor () {
+            this.firstname = 'John';
+            this.lastname = 'Doe';
+        }
+
+        introduce () {
+            console.log('My name is ' + this.firstname + ' ' + this.lastname);    
+        }
+    }
+
+    class Italian {
+        constructor () {
+            this.firstname = 'Luka';
+            this.lastname = 'Cilinni';
+        }
+
+        introdurre () {
+            console.log('Il mio nome è ' + this.firstname + ' ' + this.lastname); 
+        }
+    }
+
+    class ItalianToEnglishAdaptor {
+        constructor (italian) {
+            this.firstname = italian.firstname;
+            this.lastname = italian.lastname;
+        }
+
+        introduce () {
+            Englishman.prototype.introduce.call(this);
+        }
+    }
+
+    new Englishman().introduce();
+    new ItalianToEnglishAdaptor(new Italian()).introduce();
+
+    //***
+    // Closure
+    var SomeClass = function() {
+        var key = {};
+
+        var private = function() {
+            var obj = {};
+            return function(testkey) {
+                if(key === testkey) return obj;
+                // If the user of the class tries to access private
+                // properties, they won't have the access to the `key`
+                console.error('Cannot access private properties');
+                return undefined;
+            };
+        };
+
+        var SomeClass = function() {
+            this._ = private(); // Creates a private object
+            this._(key).priv_prop = 200; // this._(key) will return the private object
+        };
+
+        SomeClass.prototype.test = function() {
+            console.log(this._(key).priv_prop); // Using property from prototype
+        };
+
+        return SomeClass;
+    }();
+
+    var instance = new SomeClass();
+    instance.test(); // `200` logged
+
+    var wrong_key = {};
+    instance._(wrong_key); // undefined; error logged
+    //***
+
+
+
+    // ------------------------------------------------------
+    // ------------------------------------------------------
+
+    /* ПЕРЕМЕННЫЕ */
+
+    // Переменная, которая видна только в блоке, в котором объявлена
+    // Повторное объявление let в том же блоке с тем же именем приведёт к ошибке
+    // Попытка использовать let-переменную, до её объявления приведёт к ошибке
+    // Если переменная let объявлена в условии цикла, то она видна только внутри цикла.
+    // На каждую итерацию цикла создаётся своя let-переменная
+    let a = 5;
+
+    // Способ создания константы
+    // При использовании const со ссылочными типами (массив, объект...) защищается только имя, а не содержимое константы
+    const c = 'Hello';
+
+
+
+    /* ДЕСТРУКТУРИЗАЦИЯ */
+
+    // Деструктуризация массива или объекта
+    // Разбиение массива на переменные
+    // Если в массиве нет значения для переменной, то переменная undefined
+    // Можно использовать для переменных значения по умолчанию (любое выражение, даже вызов функции, при этом функция будет вызвана только при необходимости)
+    // Деструктуризации объектов и массивов можно сочетать как угодно
+    let [ho, wd] = ["Hello", "World"]; // ho = "Hello"; wd = "World"
+    let [, , title] = "ab cd ef gh".split(" "); // опущены 2 первых значения массива; title = "ef"
+    let [title, name, descr = "Default"] = ["a"]; // title = "a"; name = undefined; descr = "Default" (значение по умолчанию)
+    let { a, 'h-w': b, 'x-y': d = 5 } = { a: 1, 'h-w': 2 }; // a = 1; b = 2; c = 3 (для ключа 'c-d' создаётся переменная с) (для ключа 'x-y' создаётся переменная d и значение по умолчанию 5)
+    function showMenu({ title, width, height }) {} // Функция [ОБЯЗАТЕЛЬНО] получает в качестве аргументов объект, который тут же разбивается на меременные (синтаксис деструктуризации такой же, как у объектов)
+    function showMenu({ title, width, height } = {}) {} // А в данном случае функции можно не передавать аргумент вообще (тогда title, width, height = undefined)
+    // ВАЖНО!
+    let a, b; { a, b } = { a: 5, b: 6 }; // будет ошибка, оно посчитает, что {a,b} - блок
+    ({ a, b } = { a: 5, b: 6 }); // внутри выражения это уже не блок
+
+
+
+    /* ФУНКЦИИ */
+
+    // Значения аргументов функций по умолчанию
+    // Параметр считается переданным, если не undefined
+    // Значением по умолчанию может быть выражение, которое будет вычислено только при необходимости
+    function showMenu(title = "Title", width = 100, height = 200) {}
+
+    function showName(firstName, lastName, ...rest) {} // В случае с аргументами функции соберёт все оставшиеся агументы в массив
+    showMenu(undefined, null); // в функции выше: title = "Title", width = null, height = 200
+
+    // У каждой функции в свойстве name хрнится её имя
+    function f() {} // f.name == "f"
+    let g = function g() {}; // g.name == "g"
+    let u = { sayHi: function() {} }; // u.sayHi.name == "sayHi"
+
+    // Каждая функция доступна только в блоке, в котором она объявлена (даже до объявления)
+
+    // Объявления функций через стрелку =>
+    // Функции-стрелки не имеют своего this
+    // Функции-стрелки нельзя использовать с new
+    // Функции-стрелки не имеют своего arguments
+    let inc = x => x + 1; // Подобие lambda-выражений; function inc (x) { return x + 1; }
+    let sum = (a, b) => a + b; // Если аргументов несколько, то обернуть в скобки
+    let one = () => 1; // Функция без аргументов
+    let two = () => { return 2; }; // Можно обернуть тело функции в скобки и добавить return
+    let srt = [3, 1, 2].sort((a, b) => a - b); // Использование стрелочной функции в качестве колбэка
+
+    // Функция-стрелка в качестве декоратора
+    // Откладывает выполнение функции f на ms мс
+    function defer(f, ms) {
+        return function() {
+            setTimeout(() => f.apply(this, arguments), ms)
+        }
+    }
+
+
+
+    /* ОПЕРАТОР SPREAD */
+
+    // Оператор spread (троеточие) ...
+    // Если собирать в результирующий массив нечего, то []
+    // Оператор ... собирает «все оставшиеся» аргументы, поэтому ...rest должен быть в конце функции
+    let [firstName, lastName, ...rest] = "ab cd ef gh".split(" "); // В случае с деструктуризацией может собирать оставщиеся элементы массива
+    function showName(firstName, lastName, ...rest) {} // В случае с аргументами функции соберёт все оставшиеся агументы в массив
+    let numbers = [1, 2, 3];
+    Math.max(...numbers); // В случае с выозовом функции разобёт массив на значения аругментов
+
+
+
+    /* СТРОКИ */
+
+    // Строки-шаблоны выделяются в косые кавычки ``
+    // Строки-шаблоны разрешают перенос без \, но перенос строки и все пробелы тоже считаются частью строки
+    let str = `моя
+      многострочная
+      строка`;
+
+    // Можно вставлять выражения в ${ } (интерполяция)
+    alert(`${apples} + ${oranges} = ${apples + oranges}`);
+
+    // Функции шаблонизации
+
+    // ---------------------------------------------------
+
+    /*
+     * EVENT LOOP, MICROTASKS & ASYNC 
+     */
+
+    // Ссылки:
+    // https://www.youtube.com/watch?v=cCOL7MC4Pl0 (RUS: https://www.youtube.com/watch?v=j4_9BZezSUA)
+    // https://www.youtube.com/watch?v=Qe0IKzAB1OE
+    // https://www.youtube.com/watch?v=3IqtmUscE_U
+    // https://www.youtube.com/watch?v=aUigiwN0NEw
+    // https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/ (RUS: https://habr.com/post/264993/)
+    // https://medium.com/@stasonmars/%D0%BF%D1%83%D1%82%D0%B5%D1%88%D0%B5%D1%81%D1%82%D0%B2%D0%B8%D0%B5-%D0%BF%D0%BE-javascript-%D1%82%D0%B0%D0%B8%CC%86%D0%BC%D0%B5%D1%80%D0%B0%D0%BC-%D0%B2-%D1%81%D0%B5%D1%82%D0%B8-a8ef0e13e18
+    // https://medium.com/@stasonmars/%D0%BF%D0%BE%D0%BD%D0%B8%D0%BC%D0%B0%D0%BD%D0%B8%D0%B5-%D1%82%D0%B0%D0%B8%CC%86%D0%BC%D0%B5%D1%80%D0%BE%D0%B2-%D0%B2-javascript-callback-%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8-settimeout-setinterval-%D0%B8-requestanimationframe-f73c81cfdc9d
+    // https://developers.google.com/web/fundamentals/performance/rendering/optimize-javascript-execution?hl=ru
+    // Спецификация: https://html.spec.whatwg.org/multipage/webappapis.html
+    // Спецификация: https://www.w3.org/TR/2016/CR-html51-20160621/webappapis.html
+    // https://blog.risingstack.com/writing-a-javascript-framework-execution-timing-beyond-settimeout/
+    // rAF polyfill: https://gist.github.com/paulirish/1579671
+
+    // 1. Рендеринг не вызывается до тех пор, пока что-то есть в call stack.
+    // 2. Одна итерация event loop называется tick.
+    // 3. Код, выполняемый за один tick называется task.
+    // 4. setTimeout/setInterval - создаёт новый таск, который будет выполнен в следующем тике.
+    //    Promise.resolve().then(callback)/MutationObserver().observe(callback) - создаёт микротаск.
+    // Таски - это синхронные куски кода. Они так же могут запланировать другие таски внутри цикла.
+    // Самый простой способ запланировать новый таск: setTimeout(taskFn).
+    // Таски могут приходить из разных источников: события интерфейса, сети или манипуляции с DOM.
+    // Очередь, в которую помещаются таски называется task queue.
+    // Одному event loop'у могут соответствовать несколько task queues.
+    // У цикла событий есть одна очередь микротасков - microtask queue.
+    // Очередь микротасков всегда опустошается в конце тика после того, 
+    // как таски этого тика будут выполнены (то есть call stack станет пустым).
+    // Микротаски могут порождать другие микротаски, которые вставляются в
+    // конец очереди микротасков, и которые обязательно будут выполнены на этом же тике.
+    // В конце каждого тика браузер перерисовывает изображение, ЕСЛИ НУЖНО.
+    // requestAnimationFrame(callback) запускает callback прямо перед проверной "нужно ли рендерить".
+
+
+    // Event Loop выглядит примерно так:
+    while (eventLoop.waitForTask()) {
+        // Так как у цикла может быть несколько очередей тасков, нужно выбрать какую-то одну
+        const taskQueue = eventLoop.selectTaskQueue();
+
+        if (taskQueue.hasNextTask()) {
+            taskQueue.processNextTask();
+        }
+
+        const microtaskQueue = eventLoop.microTaskQueue;
+
+        while (microtaskQueue.hasNextMicrotask()) {
+            microtaskQueue.processNextMicrotask();
+        }
+
+        if (shouldRender()) {
+            applyScrollResizeAndCSS();
+            runAnimationFrames();
+            render();
+        }
+    }
+
+    // ПРИМЕР:
+
+    console.log('1. FIRST TASK: TICK 1: script start');
+
+    setTimeout(function() {
+        console.log('5. SECOND TASK: TICK 2: setTimeout');
+    }, 0);
+
+    Promise.resolve().then(function() {
+        console.log('3. FIRST TASK: TICK 1: promise1');
+    }).then(function() {
+        console.log('4. FIRST TASK: TICK 1: promise2');
+    });
+
+    console.log('2. FIRST TASK: TICK 1: script end');
+
+    // -------------------------
+
+    // JS - однопоточный!
+    // В JS есть только один поток (main thread). 
+    // Каждая строка синхронного кода - это один Task.
+    // Каждый Task встаёт в очередь задач - Task Queue.
+    // Их выполнением занимается Event Loop.
+    // За одну итерацию Event Loop выполняет один Task.
+    // Рассмотри пример:
+
+    // console.log(1);                         // Синхронный таск: "Выведи в консоль 1"
+    // setTimeout(() => console.log(3), 20);   // Асинхронный таск: "Создай таймер на 20мс, а затем выполни callback"
+    // console.log(2);                         // Синхронный таск: "Выведи в консоль 2"
+
+    // Во второй строке кода JS делает ответвление от главного потока,
+    // ставит таймер на 20 мс, а сам переходит к выполнению третьей строки.
+
+    // Если запустить код while(true){}, то Event loop навсегда застрянет на этом таске.
+
+    // В асинхронном коде от главного потока ответвляются 
+    // разные задачи типа сетевых запросов, таймеров, промисов и тд. После выполнения, эти ветки как-то 
+    // должны вурнуться в основной поток. Этим управляет Event Loop. Event Loop за одну итерацию забирает
+    // один таск из Task Queue.
+
+    // Task'ами называются асинхронные задачи (ответвления):
+    // - setTimeout(...);
+    // - Promise.resolve().then(...);
+
+    // Когда браузер сталкивается с асинхронным кодом, он добавляет этот код
+    // в очередь задач (Task Queue) для Event Loop.
+
+    // Microtask'ами называются callback-функции в асинхронном коде:
+    // - setTimeout(callback, 20);           // callback - это микротаск
+    // - Promise.resolve().then(callback);   // callback - это микротаск
+
+    // Когда во время выполнения синхронного кода барузер натыкается на такой 
+    // асинхронный код:
+
+    // ...
+    // setTimeout(callback, 20);
+    // ...
+
+    // он отправляет setTimeout(...) в отдельную ветку выполнения, гду будет отсчитываться таймер.
+    // В это время браузер продолжает выполнять синхронный код, следующий за setTimeout(...).
+    // Когда таймер истечёт, создастся микротаск callback. По идее, браузер должен его выполнить.
+    // Но сначала он выполнит ВЕСЬ синхронный код, следующий за setTimeout, сколько бы времени это ни заняло.
+    // Когда он это сделает, то обратится к очереди микротасков, где находится наш callback и точно так же 
+    // будет выполнять все микротаски в очереди, пока не опустошит её.
+
+    // Пример:
+
+    console.log(1);
+    Promise.resolve().then(() => console.log(4)); // () => console.log('Microtask') - это callback-microtask
+    console.log(2);
+    console.log(3);
+    // здесь больше нет синхронного кода, call stack пуст
+
+    // Мы имеем 4 строки синхронного кода. Во второй строке создаётся асинхронная ветка.
+    // Скорее всего, на момент выполнения третьей строки, микротаск () => console.log(4)
+    // уже будет находиться в очереди микротасков в ожидании выполнения. Но браузер не выполнит 
+    // его до тех пор, пока не выполнит до конца весь синхронный код (строки 3 и 4).
+    // Поэтому этот код выведет на экран:
+    // 1
+    // 2
+    // 3
+    // 4
+
+    // Более сложный пример:
+
+    function a() {
+        console.log('a1');
+        b();
+        console.log('a2');
+    }
+
+    function b() {
+        console.log('b1');
+        c();
+        console.log('b2');
+    }
+
+    function c() {
+        console.log('c1');
+        Promise.resolve().then(() => {
+            d();
+            console.log('Microtask');
+        });
+        console.log('c2');
+    }
+
+    function d() {
+        console.log('d1');
+        e();
+        console.log('d2');
+    }
+
+    function e() {
+        console.log('e1');
+        f();
+        console.log('e2');
+    }
+
+    function f() {
+        console.log('f1');
+        Promise.resolve().then(() => { console.log('Microtask2'); });
+        console.log('f2');
+    }
+
+    a();
+
+    // Ввод этой программы (микротаски в самом конце):
+    // a1
+    // b1
+    // c1
+    // c2
+    // b2
+    // a2
+    // d1
+    // e1
+    // f1
+    // f2
+    // e2
+    // d2
+    // Microtask
+    // Microtask2
+
+    // -----------------------------------
+    // Babel OOP
+    // -----------------------------------
+
+    "use strict";
+
+    var _createClass = function() {
+        function defineProperties(target, props) {
+            for (var i = 0; i < props.length; i++) {
+                var descriptor = props[i];
+                descriptor.enumerable = descriptor.enumerable || false;
+                descriptor.configurable = true;
+                if ("value" in descriptor) descriptor.writable = true;
+                Object.defineProperty(target, descriptor.key, descriptor);
+            }
+        }
+        return function(Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; };
+    }();
+
+    function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+    function _inherits(subClass, superClass) {
+        if (typeof superClass !== "function" && superClass !== null) {
+            throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+        }
+
+        subClass.prototype = Object.create(superClass && superClass.prototype, {
+            constructor: {
+                value: subClass,
+                enumerable: false,
+                writable: true,
+                configurable: true
+            }
+        });
+
+        if (superClass) {
+            Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+        }
+    }
+
+    function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+    var A = function() {
+        function A() {
+            _classCallCheck(this, A);
+        }
+
+        _createClass(A, [{
+            key: "a",
+            value: function a() {}
+        }]);
+
+        return A;
+    }();
+
+    var B = function(_A) {
+        _inherits(B, _A);
+
+        function B() {
+            _classCallCheck(this, B);
+
+            var _this = _possibleConstructorReturn(this, (B.__proto__ || Object.getPrototypeOf(B)).call(this));
+
+            _this.a();
+            return _this;
+        }
+
+        _createClass(B, [{
+            key: "a",
+            value: function a() {}
+        }]);
+
+        return B;
+    }(A);
+
+
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+
+
+    /*
+    const createClass = (className, classSchema) => {
+        let customClass = function () {};
+
+        Object.defineProperty(customClass, 'name', { value: className });
+
+        for (let key in classSchema.private) {
+            let value = classSchema.private[ key ];
+            eval(`var ${ key } = ${ typeof(value) == 'function' ? value : JSON.stringify(value) }`);
+        }
+
+        // console.log(privProp);
+        console.log('a', privMethod());
+
+        return customClass;
+    };
+
+    const Animal = createClass('Animal', {
+        private: {
+            privProp: 'I\'m private',
+            privMethod: function () {
+                console.log(privProp);
+            }
+        },
+        public: {
+            pubProp: 'I\'m public',
+            pubMethod: function () {
+                console.log(this.pubProp);
+            }
+        }
+    });
+    */
+
+    /*
+    const Animal = function () {
+        function Animal () {};
+
+        // private:
+        let privateProp = 'I`m private prop!';
+        const privateConst = 'I`m private const!';
+        let privateMethod = function () {
+            console.log('CALL privateMethod:', privateProp, privateConst);
+        };
+
+        // public:
+        Animal.prototype = {};
+
+        Object.defineProperty(
+            Animal.prototype, 
+            'publicProperty', 
+            {
+                value: ''
+            }
+        );
+
+        // static:
+        privateMethod();
+
+        return Animal;
+    }();
+
+    console.log(new Animal());
+    */
+
+    // ----------------------
+
+    function defineProps (obj, props) {
+        for (let key in props) {
+            // Object.defineProperty(obj, key, { value: props[key] });
+            obj[key] = props[key];
+        }   
+    }
+
+    function Class (ops) {
+        let cls = function () {
+            console.log('-', this.b);
+            this.constructor.apply(this, arguments);
+        };
+
+        // 1. Base class, prototype
+        const _super = ops.extends;
+
+        if (_super && typeof(_super) != 'function') {
+            throw new Error('Incorrect base class:', _super);        
+        }
+
+        cls.prototype = _super || {};
+
+        // 2. Constructor
+        const ctor = ops.constructor;
+
+        if (ctor && typeof(ctor) != 'function') {
+            throw new Error('Incorrect constructor:', ctor);        
+        }
+
+        Object.defineProperty(
+            cls.prototype, 
+            'constructor', 
+            { 
+                value: function () {
+                    console.log('implicit ctor:', this.b);
+                    ctor && ctor.apply(this, arguments);        
+                }
+            }
+        );
+
+        // 3. Class & ctor name
+        let name = ops.name;
+
+        if (typeof(name) != 'string' || !(name = name.trim())) {
+            throw new Error('Incorrect class name:', ops.name);
+        }
+
+        Object.defineProperty(cls, 'name', { value: ops.name });
+        Object.defineProperty(cls.prototype.constructor, 'name', { value: ops.name });
+
+        // 4. Static & public properties
+        ops.staticProps && defineProps(cls, ops.staticProps);
+        ops.publicProps && defineProps(cls.prototype, ops.publicProps);
+        
+        return cls;
+    }
+
+    const BaseClass = Class({
+        name: 'BaseClass',
+        extends: null,
+        constructor: function (b) {
+            console.log('explicit ctor:', this.b);
+            this.b = 1;
+        },
+        staticProps: {
+
+        },
+        publicProps: {
+            b: null,
+            printB: function () {
+                console.log(this.b);
+            }
+        },
+        privateProps: {
+
+        }
+    });
+
+    let a = new BaseClass();
+    console.log(a.b);
+    a.printB()
+
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+
+    "use strict";
+
+    var _createClass = function() {
+        function defineProperties(target, props) {
+            for (var i = 0; i < props.length; i++) {
+                var descriptor = props[i];
+                console.log(descriptor);
+                descriptor.enumerable = descriptor.enumerable || false;
+                descriptor.configurable = true;
+                if ("value" in descriptor) descriptor.writable = true;
+                Object.defineProperty(target, descriptor.key, descriptor);
+            }
+        }
+        return function(Constructor, protoProps, staticProps) { 
+            if (protoProps) defineProperties(Constructor.prototype, protoProps); 
+            if (staticProps) defineProperties(Constructor, staticProps); 
+            return Constructor; 
+        };
+    }();
+
+    function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+    var A = function() {
+
+        function A() {
+            _classCallCheck(this, A);
+
+            this.a = 5;
+        }
+
+        _createClass(A, [{
+            key: "a",
+            set: function set(a) {
+                this._a = a;
+            }
+        }]);
+
+        return A;
+    }();
+</pre>
