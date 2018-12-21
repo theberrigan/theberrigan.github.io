@@ -264,6 +264,10 @@ const db = [
                 id: 'signals'
             },
             {
+                title: 'Git',
+                id: 'git'
+            },
+            {
                 title: 'Английский язык',
                 id: 'english'
             },

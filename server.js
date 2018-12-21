@@ -3,6 +3,7 @@
 const browserSync = require('browser-sync').create();
 
 browserSync.init({
+    injectChanges: false,
     server: "./projects/",
     files: './projects/**',
     notify: false,

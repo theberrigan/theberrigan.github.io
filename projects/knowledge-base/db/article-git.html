@@ -1,0 +1,22 @@
+<h1>Git</h1>
+
+Обновить с сервера информацию о последних коммитах, ветках и изменениях:
+git fetch
+
+забирает последние изменения с сервера:
+git checkout
+
+Добавить румоут
+git remote add origin https://github.com/user/repo.git
+
+Чтобы изменить удалённый сервер
+git remote set-url origin git@github.com:user/repo.git
+
+!!! Не использовать HTTP, использовать SSH
+- https://github.com/WEMP/project-slideshow.git 
++ git@github.com:WEMP/project-slideshow.git
+
+Просмотреть текущий ремоут
+git config --get remote.origin.url
+git remote show origin
+git remote -v
