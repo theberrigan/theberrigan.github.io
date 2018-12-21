@@ -24,3 +24,8 @@ git remote set-url origin git@github.com:user/repo.git
 git config --get remote.origin.url
 git remote show origin
 git remote -v
+
+Автопуш с датой и временем в сообщении коммита:
+git add -A
+git commit -m "$( date +"%d.%m.%Y %H:%M:%S" )"
+git push
