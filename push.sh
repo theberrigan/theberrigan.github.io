@@ -9,5 +9,5 @@ DATE_WITH_TIME=`date "+%Y%m%d-%H%M%S"`
 
 # git reset HEAD~
 git add -A
-git commit -m "$( timestamp1 )"
+git commit -m "$( date +"%d.%m.%Y %H:%M:%S" )"
 git push
