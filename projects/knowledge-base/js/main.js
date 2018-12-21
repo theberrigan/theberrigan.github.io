@@ -424,6 +424,7 @@ const highlightListings = (() => {
                     attrs[matches[1]] = matches[2];
                 }
 
+
                 if (!attrs.lang || !Prism.languages[attrs.lang]) {
                     console.warn('Incorrect listing \'lang\'-attribute:', node);
                     return;
@@ -448,6 +449,10 @@ const highlightListings = (() => {
                 let minIndent = null;
 
                 lines = lines.map(line => {
+                    if (!line.trim()) {
+                        return '';
+                    }
+
                     let spaces = 0,
                         tabs = 0;
 

@@ -112,3 +112,11 @@ samp {
 .article_current {
     display: block;
 }
+
+
+/**/
+
+.pre {
+    white-space: pre-line;
+    margin: 0;
+}
