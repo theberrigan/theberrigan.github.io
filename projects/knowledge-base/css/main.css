@@ -25,6 +25,10 @@ code:not([class*="language-"]) {
     white-space: nowrap;
 }
 
+var {
+    font-family: Georgia;
+}
+
 .nav {
     position: fixed;
     top: 0;

@@ -290,7 +290,7 @@ const db = [
                 id: 'english'
             },
             {
-                title: 'Информатика',
+                title: 'Информатика и математика',
                 id: 'computer-science'
             },
             {
