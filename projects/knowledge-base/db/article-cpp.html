@@ -327,6 +327,10 @@
 <p>Операции над числами с плавающей точкой выполняются медленее операций с целочисленными типами.</p>
 
 <p>Числа с плавающей точкой представлены в соответсвии со стандартом IEEE 754. Этот стандарт определяет <code>+infinity</code>, <code>-infinity</code>, <code>nan</code> – специальные значения, которые принимает переменная с плавающей точкой в некоторых случаях. В заголовочном файле <code>cmath</code> есть функции <code>std::isinf()</code> и <code>std::isnan()</code>, которые позволяют проверить числовые переменные.</p>
+<div class="alert alert-danger">
+    Любое число, являющееся дробью с нечетным знаменателем, не может быть представлено в точности как двоичное значение с плавающей точкой.
+    Нужно быть очень осторожным при сравнении и при рассчётах с числами с плавающей точкой.
+</div>
 <figure class="figure">
   <img src="images/cpp/ieee754_inf_nan.png" class="figure-img img-fluid">
   <figcaption class="figure-caption text-center">Операции, приводящие к +infinity, -infinity и nan</figcaption>
@@ -677,7 +681,7 @@ int main () {
 </ul>
 
 <h2>sizeof</h2>
-Функция sizeof() измеряет размер чего-то в разных единицах, возвращает число типа <code>size_t</code>:
+Функция sizeof() измеряет размер чего-то в разных единицах, возвращает число типа <code>size_t</code>, который в C++ определён как <code>unsigned int</code>:
 <ul>
     <li>
         <code>sizeof(&lt;type>)</code> - размер типа <code>&lt;type></code> в байтах:
@@ -707,6 +711,378 @@ int main () {
     Нельзя узнать размер массива через <code>sizeof</code>, созданного с помощью <code>new</code>, то есть массива, хранящегося в куче.
 </div>
 
+<h2>Bitwise ops</h2>
+<div class="alert alert-danger" role="alert">
+   В C++ не существует математических и битовых операций над целыми типами, меньше <code>int</code>.
+   Поэтому при использовании таких операторов операнды неявно приводятся к типу <code>int</code>. 
+   Нужно использовать <code>static_cast</code> после использования таких операторов.
+</div>
+<p><code>&lt;&lt;</code>/<code>>></code> на n бит эквивалентно умножению/делению на 2n.</p>
+<p>В смещении участвует и знаковый бит, поэтому суть числа со знаком может сильно измениться после смещения.</p>
+<p>Запись <code>number >>= 2;</code> эквивалентна <code>number = static_cast&lt;unsigned short>(number >> 2);</code>.</p>
+<p>В целых числах со знаком при сдвиге вправо может вставляться 1 на место знакового бита, а может ставиться 0. Всё зависит от компилятора и ОС.</p>
+
+<h2>enum</h2>
+<!--<listing lang="cpp">
+    // Эквивалентные способы объявления  
+    enum Color { Red, Green, Blue };                             // Неявно присваиваются числовые значения 0, 1 и 2
+    enum Color { Red = 0, Green = 1, Blue = 2 };                 // Явно присваиваются числовые значения 0, 1 и 2
+    enum Color { Red = 0, Green = Red + 1, Blue = Green + 1 };   // Значение следующего члены вычисляется на основе предыдущего
+</listing>-->
+<ul>
+    <li>Является альтернативой по отношению к <code>const</code> для создания логически связанных констант.</li>
+    <li>Каждому члену можно явно присвоить число. Если число не указано явно, то член получает значение на 1 больше предыдущего члена.     
+    <!--<listing lang="cpp">
+        enum Player { 
+            First,      // 0
+            Second,     // 1
+            Third = 5,  // 5
+            Fourth,     // 6
+            Fifth,      // 7
+            Sixth = 5,  // 5
+            Seventh     // 6
+        };
+    </listing>-->
+    </li>
+    <li>Членам enum можно присваивоить любую целочисленную compile-time-константу.
+    <!--<listing lang="cpp">
+        // Явно определён целочилсенный тип, который ляжет в основу этого enum
+        enum class Punctuation : char {
+            Comma  = ',', 
+            Exclamation = '!', 
+            Question='?' 
+        };
+    </listing>-->
+    </li>
+    <li>Члены <code>enum</code> не обязательно должны иметь уникальное числовое значение.
+    <!--<listing lang="cpp">
+        enum Color { Red = 1, Green = 1, Blue = 1 };
+    </listing>-->
+    </li>
+    <li>Переменные типа <code>enum</code> автоматически преобразуются в <code>int</code>, но не обратно.
+    <!--<listing lang="cpp">
+        Color pixelColor;
+        pixelColor = Red;
+        pixelColor = 1;            // нельзя, потому что int не приводится к enum
+
+        int pixelColor = Red;
+        pixelColor = 1 + Red;      // можно, потому что enum не приводится к int
+        pixelColor = Green + Red;  // нельзя
+    </listing>-->
+    </li>
+    <li>Можно объявлять переменные того же типа, что и enum, а затем присваивать им значение любого из членов этого enum:
+    <!--<listing lang="cpp">
+        enum class Day { Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };
+
+        // Три переменные типа Day, каждой из которых присвоено одно из значений enum
+        Day yesterday{ Day::Monday }, 
+            today{ Day::Tuesday }, 
+            tomorrow{ Day::Wednesday };
+    </listing>-->
+    </li>
+    <li style="opacity: 0.5">
+        Размером конкретного enum будет число n-1, где n - наименьшее число, являющееся степенью двойки, которое больше максимального перечислителя.
+        Например, значение наибольшего перечислителя равно 12. Ближайшее число, которое больше 12 и является степенью двойки - 16. Поэтому размер - 15.
+    </li>
+</ul>
+Есть два способа объявить enum: старый (old-style) и сильно-типизованый (strongly typed):
+<ul>
+    <li>
+        <code>enum</code>, объявленный старым способом, не имеют своего собственного скоупа:
+        <!--<listing lang="cpp">
+            enum Animals { Bear, Cat, Chicken };
+            enum Birds { Eagle, Duck, Chicken };  // ошибка: Chicken has already been declared!            
+        </listing>-->
+        Новый способ такой проблемы не имеет:
+        <!--<listing lang="cpp">
+            enum class Fruits { Apple, Pear, Orange };
+            enum class Colours { Blue, White, Orange };         
+        </listing>-->
+    </li>
+    <li>
+        <code>enum</code>, объявленный старым способом, используют неявное приведение типов, что может привести к странному поведению:
+        <!--<listing lang="cpp">
+            bool b = Bear && Duck;  // что?        
+        </listing>-->
+    </li>
+    <li>
+        Новый способ позволяет явно указать, какой целочисленный тип заложить в основу enum. Старый способ использует <code>int</code>.
+        <!--<listing lang="cpp">
+            // Для подсчёта использован char
+            enum class Foo : char { A, B, C};    
+        </listing>-->
+    </li>
+</ul>
+
+<h2>Псевдонимы типов</h2>
+Для создания псевдонима типа можно использовать один из следующих способов:
+<ul>
+    <li>
+        Использовать препроцессорную директиву <code>#define</code> (старый способ):
+        <!--<listing lang="cpp">
+            // BYTE - псевдоним char
+            #define BYTE char    
+        </listing>-->        
+    </li>
+    <li>
+        Использовать <code>typedef</code> (старый способ):
+        <!--<listing lang="cpp">
+            // byte - псевдоним char
+            typedef char byte;
+        </listing>-->
+    </li>
+    <li>
+        Использовать ключевое слово <code>using</code> (предпочтительный способ):
+        <!--<listing lang="cpp">
+            // byte - псевдоним char
+            using byte = char;
+        </listing>-->
+    </li>
+</ul>
+
+<h2>Управление памятью</h2>
+Ссылки:
+<ul>
+    <li><a href="https://en.wikipedia.org/wiki/Data_segment" target="_blank">Data segment</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Portable_Executable" target="_blank">Portable Executable</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Object_file" target="_blank">Object file</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Automatic_variable" target="_blank">Automatic variable</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Static_variable" target="_blank">Static variable</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Call_stack" target="_blank">Call stack</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Memory_management" target="_blank">Memory management</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Stack_buffer_overflow" target="_blank">Stack buffer overflow</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Stack_overflow" target="_blank">Stack overflow</a></li>
+</ul>
+Память, выделенную для программы делят на несколько хранилищ, в зависимости от того, как долго они хранят данные (переменные).
+Время жизни каждой переменной зависит от того, в каком из чётырёх хранилищ она находится:
+<ul>
+    <li>
+        Переменные, объявленные в блоке кода без ключевого слова <code>static</code>, находятся в <strong>автоматическом хранилище</strong>.<br>
+        Они существуют с момента своего определения до конца блока кода, в котором определены, то есть до <code>}</code> этого блока.<br>
+        Такие переменные называют <strong>автоматическими</strong> или <strong>локальными переменными</strong>.<br>
+        Такие переменные имеют <strong>локальную</strong> или <strong>блочную область видимости</strong>.
+    </li>
+    <li>
+        Переменные, объявленные с ключевым словом <code>static</code>, находятся в <strong>статическом хранилище</strong>.<br>
+        Это <strong>статические переменные</strong>.<br>
+        Они существуют с момента своего определения до конца работы программы.
+    </li>
+    <li>
+        Переменные, для которых память выделяется динамически посредством ключевого слова <code>new</code>, хранятся в <strong>динамическом хранилище</strong>.<br>
+        Они существуют с момента выделения памяти с помощью <code>new</code>, до освобождения памяти с помощью <code>delete</code>.
+    </li>
+    <li>        
+        Переменные, объявленные с ключевым словом <code>thread_local</code>, находятся в <strong>хранилище потока</strong>.
+    </li>
+</ul>
+Виды переменных:
+<ul>
+    <li>
+        <strong>Глобальные переменные</strong> – переменные, которые имеют <strong>global scope</strong>. <br>
+        Они хранятся в статическом хранилище и существуют с запуска программы до её завершения.<br>
+        Глобальные переменные инициализируются до вызова функции <code>main</code>.<br>
+        Если не инициализовать глобальную переменную сразу, то ей будет присвоено нулевое значение.
+    </li>
+</ul>
+Некоторые правила:
+<ul>
+    <li>
+        Если в глобальной и локальной области видимости есть переменная с одним и тем же именем, то для получения доступа к глобальной переменной,
+        нужно использовать унарный оператор <code>::</code>. Например, <code>::var</code>.
+    </li>
+    <li>Делать переменные глобальными не рекомендуется. А вот глобальные константы – это нормально.</li>
+    <li>
+        Случайное обращение к памяти, котора не пренадлежит процессу или конкретной переменной в программе, 
+        может вызвать ошибку <em>segmentation fault</em> или <em>access violation</em>.
+    </li>
+</ul>
+<div>
+    <img src="images/cpp/memory_layout.png" style="float: left; max-height: 800px; border: 1px solid #000;">
+    <img src="images/cpp/memory_layout_2.png" style="float: left; max-height: 330px; box-shadow: inset 0 0 1px #000; border: 1px solid #000;">
+    <img src="images/cpp/memory_layout_3.png" style="float: left; max-height: 330px; border: 1px solid #000;">
+    <img src="images/cpp/memory_layout_linux.png" style="float: left; border: 1px solid #000;">
+    <img src="images/cpp/memory_layout_win32.png" style="float: left; max-height: 350px; border: 1px solid #000;">
+    <div style="clear: both"></div>
+</div>
+
+<h2>Условные операторы</h2>
+<p>В C++17 вместо такого выражения:</p>
+<!--<listing lang="cpp">
+    {
+        int var{ /* init */ };
+
+        if (var > 5 && var < 10) {
+            std::cout << var << std::endl;
+        }
+    }
+</listing>-->
+<p>можно использовать такое:</p>
+<!--<listing lang="cpp">
+    if (int var{ /* init */ }; var > 5 && var < 10) {
+        std::cout << var << std::endl;
+    }
+</listing>-->
+<p>При этом переменная <code>var</code> будет видна как в условном выражении, так и внутри блока.</p>
+<p><code>switch</code> имеет такую же возможность в C++17: <code>switch (initialization; condition) { ... }</code></p>
+
+<h2>Массивы</h2>
+<p>Инициализировать массивы можно несколькими способами. При это в квадратных скобках нужно указать кол-во элементов (должна быть константа), 
+а в фигурных можно сразу задать элементы. Если элементы заданы сразу, то кол-во эл-ов в квадратных скобках можно опустить.</p>
+<!--<listing lang="cpp">
+    int months[12];                 // в стеке, только выделение памяти
+    int months[12] = { 1, 2, 3 };   // в стеке, выделение памяти для 12 элементов, заполнение только 3х элементов
+    int months[] = { 1, 2, 3 };     // в стеке, 
+    int months[] { 1, 2, 3 };       // в стеке, стиль С++11
+</listing>-->
+<p>Некоторые правила:</p>
+<ul>
+    <li>
+        Самый простой способ определить количество элементов в массиве в C++17 – функция <code>std::size(arr)</code> из STL.<br>
+        Эта функция работает и с <code>std::array</code>, <code>std::vector</code>.<br>
+        Эта ф-ция определна в хедере <code>iterator</code> и в <code>array</code>.
+    </li>
+    <li>
+        Второй способ - <code>sizeof(arr) / sizeof(type)</code>, где <code>arr</code> - массив, а <code>type</code> - тип элементов массива.<br>
+        Или <code>sizeof(arr) / sizeof(arr[0])</code>.
+    </li>
+    <li></li>
+    <li></li>
+    <li></li>
+</ul>
+
+
+
+
+<!-- 0000000000000000000 -->
+<br><br><br><br><br><br><br><br><br><br><br>
+
+
+static делает функцию (именно функцию, а не метод класса) видимой только для текущей единицы трансляции.
+Это свойство можно использовать, например, для избавления от ошибки связывании при объявлении нескольких функций с одинаковой сигнатурой.
+
+У include название хедера записывается в треугольных скобках когда компилятору нужно сообщить, чтобы он искал этот хедер
+во всех include-директориях проекта. Двойные кавычки используется, когда нужно указать относительный для данного файла путь.
+
+NULL определён как 0. В C++11 есть nullptr для того, чтобы обозначить указатель нулевым.
+
+char* buffer = new char[8];  // буфер из 8 байт
+memset(buffer, 0, 8);  // заполняет буфер нулями
+delete[] buffer;
+
+// Ссылочные переменные - это алиазы для переменной
+// Ссылка - это T* const
+int a = 5;
+int& refA = a;  // ссылочная переменная
+cout << refA;   // выведется 5
+refA = 10;      // записывается новое значение в память, на которую укзаывает refA. То есть переменной a присваивается новое значение.
+cout << a;      // выведется 10
+// ! Ссылочной переменной необходимо назначать адрес во время объявления, как константе. Назначить новый адрес самой ссылочной переменной невозможно.
+//-----------
+void inc (int& v) { v++; }
+int a = 5;
+inc(a);
+cout << a;  // 6
+
+
+
+if-else, switch-case, while, for, do-while 
+static, volatile, extern, inline, virtual, private, public, protected
+struct, class, enum, union,
+array, vector
+ссылки; обычные указатели; умные указатели; указатели на строки, массивы, константы; арифметика указателей
+Как представлены числа в C++ и особенности работы с ними
+template, constexpr
+obj, internal linkage, static linkage, dynamic linkage, thread storage
+
+----------------------------------
+
+Compile - сборка одного файла
+Build = Compile + Link
+
+Решение (solution) состоит как минимум из одного проекта (project).
+Каждый проект состоит из разных файлов: .h, .cpp, и тд.
+Поэтому есть несколько вариантов сборки:
+- Скомпилировать (без связывания) только одну единицу компиляции внутри какого-то проекта внутри решения.
+- Собрать какой-то из проектов внутри решения.
+- Собрать всё решение.
+* Под "собрать" подразумевается компиляция с последующим связыванием.
+
+Когда мы собираем весь проект, компилятор отыскивает все cpp-файлы этого проекта и обрабатывает их препроцессором,
+который, помимо всего прочего, заменит все #include на содержимое файлов. Каждый cpp-файл, обработанный таким образом, называется единицей
+компиляции. Каждая такая единица будет скомпилирована. Компилятору важно, чтобы на месте были все определения (declaration, только прототип)
+функций, классов, переменных и тд. Ему совершенно не важно, есть ли хотя бы в одной из единиц компиляции
+непосредственное определение (definition, сама функция с кодом) для функций, классов, переменных и тд. Он это
+даже не проверяет. После компиляции получаются obj-файлы, которые содержат код программы, а также кучу дополнительной
+мета-информации, среди которой "символы" - специальные уникальные идентификаторы функций (классов, констант...), 
+по которым линковщик должен будет связать получившиеся obj-файлы в конечный файл (exe/dll/lib). Для функций, например, 
+таким идентификатором служит её сигнатура: "тип_функции + имя_функции + аргументы_с_их_типами". Линковщику, в отличие от
+компилятора, важно найти непосредственные определения (definition) всех функций, клссов и тд. Например, в одном obj-файле
+вызывается функция, которой компилятор назначил символ "XXXXX" (сигнатуру). Линковщик видит это и начинает искать 
+непосредственное определение этой функции по этому символу в других obj-файлах. Если находит, то связывает вызов и определение
+функции по адресу. Если не находит – ошибка связывания.
+
+Линковщик связывает использование сущности (например, вызов функции) с её непосредственным определением.
+
+static перед функцией говорит о том, что она может использоваться только в рамках этой единицы компиляции.
+В противном случае компилятор подразумевает, что эта функция потенциально может вызывать где-то за пределами этой единицы компиляции.
+
+Static library (.lib) сразу после компиляции во время [статического] связывания добавляется внутрь конечного dll/exe-файла.
+Dynamic library (.dll) во время запуска программы динамически связывается с основным exe/dll-файлом.
+Статическая библиотека работает быстрее.
+Динамическую библиотеку можно шарить между процессами (?).
+Статическая библиотека, как obj-файл содержит машинный код вместе с символами, поэтому вместе со статической библиотекой
+всегда идёт хедер, в котором определены прототипы сущностей.
+
+
+
+
+----------------------------------
+
+Рассматривать темы с уклоном на Windows:
+1. Solutions and Projects in VS
+2. What is translation unit and how it differs from one .cpp-file
+3. Object files: structure and how it becomes an dll/lib/exe
+4. Linkage (no linkage/external/internal - "extern"/"static"/"extern C") 
+5. Linking (dynamic/static) and how to combine dll-lib-h
+6. How to create and load lib and dll libs
+7. Process layout in Windows (stack, heap, bss, .text, .data...)
+   Where is dll/lib, static/global/const, BSS, 
+8. Storage durations (page 105):
+   - automatic storage duration
+   - static storage duration
+   - dynamic storage duration
+   - thread storage duration
+9. Scopes
+
+https://en.cppreference.com/w/cpp/language/storage_duration
+https://en.wikipedia.org/wiki/Translation_unit_(programming)
+DLL articles list: https://docs.microsoft.com/en-us/cpp/build/dlls-in-visual-cpp?view=vs-2017
+virtual: http://www.lrdev.com/lr/c/virtual.html
+Связываение: 
+- https://www.youtube.com/watch?v=Jzh4ZULXsvo
+- https://www.youtube.com/watch?v=pLy69V2F_8M
+- https://www.youtube.com/watch?v=H4s55GgAg0I
+- https://www.youtube.com/watch?v=or1dAmUO8k0
+
+static - static or thread storage duration and internal linkage.
+extern - static or thread storage duration and external linkage.
+
+----------------------------------
+Как работать со строками
+
+Static class member/static function (C-style)
+
+Как правильно работать с арифметикой целых чисел и чисел с плавающей точкой:
+- "Совершенный код" стр 282
+- "Beginning C++17" стр 157
+- Книги по алгоритмам
+- https://www.codeproject.com/Articles/29637/%2FArticles%2F29637%2FFive-Tips-for-Floating-Point-Programming
+- ! https://floating-point-gui.de/
+
+Кроссплатформенность C++
+
+Best Practices
+----------------------------------
 
 <!--
     ////////////////////////////////////////////
@@ -1569,32 +1945,7 @@ int main () {
 
       customTax.currency_str = "USD";
       customTax.сurrency_enum = USD;
-    - Перечисления (enum):
-      - Является альтернативой по отношению к const для создания констант
-      - Переменные типа enum автоматически преобразуются в int, но не обратно
-      - Размером конкретного enum будет число n-1, где n - наименьшее число, являющееся степенью двойки, которое больше максимального перечислителя
 
-      // Простое перечисление
-      enum Color {
-        Red,    // значение по умолчанию: 0
-        Green,  // значение по умолчанию: 1
-        Blue    // значение по умолчанию: 2
-      };
-
-      Color pixelColor;
-      pixelColor = Red;
-      pixelColor = 1;        // нельзя (int -/-> enum)
-
-      int pixelColor = Red;
-      pixelColor = 1 + Red;      // можно (enum --> int)
-      pixelColor = Green + Red;  // нельзя
-
-      // Явное присваивание значений членам enum
-      enum Color {
-        Red = 2,
-        Green,    // (будет присвоено на 1 больше, чем предыдущему, то есть 3) не обязательно присваивать значение всем компонентам
-        Blue = 6
-      };
     Указатели и выделение памяти:
       - new (выделяет память в куче) и delete (освобождает память в куче) используются в паре
       - антипаттерн: new в одной функции, а delete - в другой
@@ -1626,9 +1977,6 @@ int main () {
       int *p;
       p = (int *)0xB8000000;  // присваивание указателю нового адреса
       *p = 200;               // записать значение 200 в область памяти, на которую указывает указатель
-    Кастомные типы:
-      #define BYTE char   // BYTE - псевдоним char
-      typedef char byte;  // byte - псевдоним char
     Циклы:
       for (<type> x : <container>) {}  // C++11; цикл, который перебирает с помощью переменной x все элементы контейнера <container> типа <type>
 
@@ -1643,12 +1991,6 @@ int main () {
     int num(5);       // стек, стиль C++
     int num = { 5 };  // стек, стиль С++11  | если оставить скобки пустыми, то переменная инициализируется 0
     int num{ 5 };     // стек, стиль С++11  |
-
-    Инициализация массивов:
-    int months[12];                 // в стеке, только выделение памяти
-    int months[12] = { 1, 2, 3 };   // в стеке, выделение памяти для 12 элементов, заполнение только 3х элементов
-    int months[] = { 1, 2, 3 };     // в стеке, 
-    int months[] { 1, 2, 3 };       // в стеке, стиль С++11
 
     Инициализация строк:
     char char_str[] = { "Stringo" };
