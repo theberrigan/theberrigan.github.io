@@ -1,7 +1,7 @@
 {
-  "name": "mathprofi-wrap",
+  "name": "knowledge-base",
   "version": "1.0.0",
-  "description": "Mathprofi Wrap",
+  "description": "Knowledge Base",
   "scripts": {
     "start": "node server.js"
   },
