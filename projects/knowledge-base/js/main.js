@@ -224,6 +224,14 @@ const db = [
                 id: 'arch'
             },
             {
+                title: 'Ассемблер',
+                id: 'asm'
+            },
+            {
+                title: 'Хакинг',
+                id: 'hacking'
+            },
+            {
                 title: 'Математика',
                 id: 'math'
             },
@@ -256,10 +264,6 @@ const db = [
                 id: 'webgl'
             },
             {
-                title: 'Дизасемблирование',
-                id: 'disasm'
-            },
-            {
                 title: 'Цифровые сигналы',
                 id: 'signals'
             },
@@ -278,6 +282,10 @@ const db = [
             {
                 title: 'Сценарии, драматургия, юмор',
                 id: 'drama'
+            },
+            {
+                title: 'Психология',
+                id: 'psychology'
             },
         ]
     },
