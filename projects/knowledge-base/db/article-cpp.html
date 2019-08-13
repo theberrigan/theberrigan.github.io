@@ -1380,6 +1380,7 @@ cv-квалификаторы:
 
 <h2>Указатели и ссылки</h2>
 <ul>
+    <li>Указателю нужно назначать тип, чтобы он знал, на область какого размера он указывает. Тип указателя не влияет на размер самого указателя.</li>
     <li>
         Объявление указателя легче всего читать справа налево. При этом каждую * произносить как "указатель на".
         Например, выражение <code>float const * const pvalue { &amp;v };</code> произносится как "pvalue - константный указатель на константу типа float".
@@ -1468,7 +1469,12 @@ cv-квалификаторы:
             </li>
         </ul>
     </li>
-    <li></li>
+    <li>
+        Примеры указателей:
+        <!--<listing lang="cpp">
+            const char* pproverb {"A miss is as good as a mile."};
+        </listing>-->
+    </li>
     <li></li>
     <li></li>
     <li></li>
@@ -1483,6 +1489,95 @@ cv-квалификаторы:
 
 <!-- 0000000000000000000 -->
 <br><br><br><br><br><br><br><br><br><br><br>
+
+auto anEmployee = std::make_unique<Employee>();
+anEmployee->call();
+
+auto employees = std::make_unique<Employee[]>(10);
+std::cout << "Salary: " << employees[0].salary << std::endl;
+
+auto anEmployee = make_shared<Employee>();
+
+shared_ptr<Employee[]> employees(new Employee[10]);
+
+If you need to pass an object to a function, prefer to pass it by const
+reference instead of by value. This prevents unnecessary copying. Pass it by
+non-const reference if the function needs to modify the object.
+
+Always keep in mind that auto strips away reference and const
+qualifiers, and thus creates a copy! If you do not want a copy, use auto& or
+const auto&
+
+The decltype keyword takes an expression as argument, and computes the type of that expression,
+as shown here:
+decltype(x) y = 456;
+The difference between auto and decltype is that decltype does not strip reference and const
+qualifiers. 
+
+To follow the const-correctness principle, it’s always a good idea to
+declare member functions that do not change any data member of the object as
+being const. These member functions are also called “inspectors,” compared to
+“mutators” for non-const member functions:
+class AirlineTicket {
+public:
+    AirlineTicket(int x, int y, double radius) : mX(x), mY(y), mRadius(radius) {}
+    void setPassengerName(const std::string& name);  // mutator
+    int getNumberOfMiles() const;  // inspector
+};
+
+AirlineTicket myTicket{10, 10, 2.5};
+
+AirlineTicket myTicket; // stack
+auto myTicket2 = make_unique<AirlineTicket>();  // heap
+//-----------------------------------------
+{} - uniform initialization 
+Copy list initialization.   T obj = {arg1, arg2, ...};
+Direct list initialization. T obj {arg1, arg2, ...};
+
+// BEFORE C++17
+
+// Copy list initialization
+auto a = {11}; // initializer_list<int>
+auto b = {11, 22}; // initializer_list<int>
+
+// Direct list initialization
+auto c {11}; // initializer_list<int>
+auto d {11, 22}; // initializer_list<int>
+
+// AFTER C++17
+
+// Copy list initialization
+auto a = {11}; // initializer_list<int>
+auto b = {11, 22}; // initializer_list<int>
+
+// Direct list initialization
+auto c {11}; // int
+auto d {11, 22}; // Error, too many elements.
+//-----------------------------------------
+// std::size of array
+// variable args with initializer_list
+// if, switch/case + initializators
+// auto, decltype
+// using as typedef
+// unique_ptr, shared_ptr, make_unique, make_shared с примитивами, объектами, строками, объектами
+// RAII, SOLID, rule of three (five)
+// args pass by value, lvalue, rvalue, move semantics
+// static_cast, dynamic_cast, reinterpret_case
+// __asm{}
+// инициалиацзия класса через конструктор и список инициализации
+
+- Стек использовать для локальных переменных, кучу - если нужно передать владение ресурсом за пределы функции.
+- Когда нет ownership использовать обычный указатель, в противном случае unique/shared
+- Везде, где можно использовать const
+- У тех методов, которые ничего не изменяют в объекте (inspectors) добавлять const ПОСЛЕ списка аргументов.
+  У всех остальных (mutators) const не нужен
+- Определение классов в .h, реализация в .cpp
+- 
+
+- auto срезает const и &
+- const type &var в качестве аргумента позволяет принимать не только переменные и уонстанты, но и литералы.
+
+
 Темы:
 - Компиляция:
     - Precompiled Headers
