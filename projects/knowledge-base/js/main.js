@@ -228,6 +228,10 @@ const db = [
                 id: 'asm'
             },
             {
+                title: 'Криптография',
+                id: 'crypto'
+            },
+            {
                 title: 'Хакинг',
                 id: 'hacking'
             },
