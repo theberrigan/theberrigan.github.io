@@ -291,6 +291,10 @@ const db = [
                 title: 'Психология',
                 id: 'psychology'
             },
+            {
+                title: 'Голос',
+                id: 'voice'
+            },
         ]
     },
     {
