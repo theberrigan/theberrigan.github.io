@@ -295,6 +295,10 @@ const db = [
                 title: 'Голос',
                 id: 'voice'
             },
+            {
+                title: 'Рисование',
+                id: 'art'
+            },
         ]
     },
     {
@@ -597,6 +601,15 @@ const init = () => {
         e.stopPropagation();
 
         showArticle(e.currentTarget.href.split('#').pop());
+    });
+
+    $(document.body).on('click', 'article.article a', e => {
+        const data = e.target.dataset;
+
+        if (data.spoiler) {
+            e.preventDefault();
+            $(`.spoiler[data-spoiler='${ data.spoiler }']`).toggleClass('spoiler_opened');
+        }
     });
 
     // --------

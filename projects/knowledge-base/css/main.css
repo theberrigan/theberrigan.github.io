@@ -29,6 +29,11 @@ var {
     font-family: Georgia;
 }
 
+strong,
+b {
+    font-weight: bold;
+}
+
 .nav {
     position: fixed;
     top: 0;
@@ -147,4 +152,16 @@ var {
 .pre {
     white-space: pre-line;
     margin: 0;
+}
+
+.text-semibold {
+    font-weight: 600;
+}
+
+.spoiler {
+    display: none;
+}
+
+.spoiler_opened {
+    display: block;
 }
