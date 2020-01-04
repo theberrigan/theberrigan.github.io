@@ -204,6 +204,18 @@ const db = [
         type: 'article',
         items: [
             {
+                title: 'Актёрство',
+                id: 'acting'
+            },
+            {
+                title: 'Комедия',
+                id: 'comedy'
+            },
+            {
+                title: 'Английский язык',
+                id: 'english'
+            },
+            {
                 title: 'Электроника',
                 id: 'electronics'
             },
@@ -276,10 +288,6 @@ const db = [
                 id: 'git'
             },
             {
-                title: 'Английский язык',
-                id: 'english'
-            },
-            {
                 title: 'Музыка',
                 id: 'music'
             },
@@ -290,10 +298,6 @@ const db = [
             {
                 title: 'Психология',
                 id: 'psychology'
-            },
-            {
-                title: 'Голос',
-                id: 'voice'
             },
             {
                 title: 'Рисование',
