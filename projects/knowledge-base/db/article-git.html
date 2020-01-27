@@ -10,11 +10,14 @@ git fetch
 забирает последние изменения с сервера:
 git checkout
 
-Добавить румоут
+Добавить ремоут
 git remote add origin https://github.com/user/repo.git
 
 Чтобы изменить удалённый сервер
 git remote set-url origin git@github.com:user/repo.git
+
+Просмотреть локальные незапушенные коммиты
+git log --branches --not --remotes
 
 !!! Не использовать HTTP, использовать SSH
 - https://github.com/WEMP/project-slideshow.git 
@@ -24,6 +27,9 @@ git remote set-url origin git@github.com:user/repo.git
 git config --get remote.origin.url
 git remote show origin
 git remote -v
+
+Переключить локальную ветку на одну из удалённых
+git checkout --track origin/<some_remote_branch>
 
 Автопуш с датой и временем в сообщении коммита:
 git add -A
