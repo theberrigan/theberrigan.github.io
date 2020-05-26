@@ -204,7 +204,7 @@ const db = [
         type: 'article',
         items: [
             {
-                title: 'Актёрство',
+                title: 'Актёрство, голос, пение',
                 id: 'acting'
             },
             {
