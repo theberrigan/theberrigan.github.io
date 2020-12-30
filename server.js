@@ -8,5 +8,6 @@ browserSync.init({
     files: './projects/**',
     notify: false,
     port: 9137,
-    open: false
+    open: true,
+    startPath: '/knowledge-base'
 });
