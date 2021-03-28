@@ -1,203 +1,3 @@
-/*
-const onHashAnchorClick = e => {
-    const target = e.currentTarget;
-    const hash = target.getAttribute('href');
-
-    if (hash.startsWith('#article-')) {
-        e.preventDefault();
-        navMap.forEach(pair => {
-            const [ anchorEl, articleEl ] = pair; 
-
-            if (anchorEl === target) {
-                articleEl.classList.add('article_current');
-                anchorEl.classList.add('current');
-            } else {
-                articleEl.classList.remove('article_current');
-                anchorEl.classList.remove('current');
-            }
-        });
-    }
-
-    console.log(e);
-};
-*/
-/*
-const collectComments = () => {
-    const comments = [];
-    let commentsLinear = [];
-
-    const commentRegexp = /^<([\w\-]+)(?:[\s\t]*[\w\-]+="[^"]+")*(\/)?>$/i;
-    const closeRegexp = /^<\/[\w\-]+>$/i;
-    const attrRegexp = /([\w\-]+)="([^"]+)"/ig;
-  
-    const contexts = [];
-
-    const exports = {};
-
-    (function collectWalker (parentNode, currentCommentDestination, currentParentComment) {
-        if (!(parentNode instanceof HTMLElement)) {
-            return;
-        }
-
-        parentNode.childNodes.forEach(childNode => {
-            if (childNode.nodeType !== 8) {  // not a comment node
-                collectWalker(childNode, currentCommentDestination, currentParentComment);
-                return;
-            }
-
-            const commentText = childNode.nodeValue || '';
-
-            if (contexts.length && closeRegexp.test(commentText)) {
-                if (contexts[contexts.length - 1].closeTag === commentText) {
-                    // Restore context
-                    ({ 
-                        currentCommentDestination, 
-                        currentParentComment 
-                    } = contexts.pop()).commentNode.closeCommentNode = childNode;
-
-                    return;                    
-                }
-
-                throw new Error('Incorrect comments hierarchy');
-            }
-
-            let matches = commentText.match(commentRegexp);
-
-            if (matches) {
-                const type = matches[1];
-                const isSource = !matches[2];
-
-                const commentNode = { 
-                    parentComment: currentParentComment,
-                    parentElement: parentNode,
-                    openCommentNode: childNode,
-                    closeCommentNode: null, 
-                    isSource, 
-                    type, 
-                    attrs: {},
-                    children: [],
-                    import: null,
-                    domNodes: [],
-                    // deps: [],
-                    isResolved: false,
-                    __commentText: commentText
-                };
-
-                // ------
-
-                while (matches = attrRegexp.exec(commentText)) {
-                    commentNode.attrs[matches[1]] = matches[2];
-                }
-
-                const attrs = commentNode.attrs;
-
-                if (attrs.import && attrs.export) {
-                    throw new Error('Using of \'import\' and \'export\' together is not allowed.');
-                } else if (isSource) {
-                    if (attrs.import) {                        
-                        throw new Error('Using of \'import\' on source node is not allowed.');
-                    }
-
-                    if (!attrs.export) {
-                        console.warn('Unnecessary comment.');                        
-                    }
-
-                    exports[attrs.export] = commentNode;
-                    delete attrs.export;
-                } else {  // dest
-                    if (attrs.export) {                        
-                        throw new Error('Using of \'export\' on destination node is not allowed.');
-                    }
-
-                    if (!attrs.import) {
-                        console.warn('Unnecessary comment.');                        
-                    }
-
-                    commentNode.import = attrs.import;
-                    delete attrs.import;                   
-                }
-
-                // ------
-
-                currentCommentDestination.push(commentNode);
-                commentsLinear.push(commentNode);
-
-                if (isSource) {
-                    // Save context
-                    contexts.push({
-                        closeTag: `</${ type }>`,
-                        commentNode,
-                        currentCommentDestination,
-                        currentParentComment,
-                    });
-
-                    // Switch context
-                    currentCommentDestination = commentNode.children;
-                    currentParentComment = commentNode;
-                }
-            }
-        });
-
-        // ? collectWalker();
-    })(document.body, comments, null);
-
-    // --------------------------
-
-    (function resolveWalker (commentsList) {
-        commentsList.forEach(commentNode => {
-            let toResolve = commentNode.children;
-
-            if (commentNode.import) {
-                if (!(commentNode.import in exports)) {
-                    throw new Error(`Dependency is not resolved: ${ commentNode.import }`);                    
-                }
-
-                toResolve = [ exports[commentNode.import], ...toResolve ];
-            }
-
-            resolveWalker(commentNode.children);
-
-            // import 
-            if (commentNode.import) {
-                exports[commentNode.import].domNodes.forEach(node => {
-                    commentNode.openCommentNode.parentNode.insertBefore(
-                        node.cloneNode(true), 
-                        commentNode.openCommentNode
-                    );
-                });
-
-                commentNode.openCommentNode.remove();
-
-            // export
-            } else if (!commentNode.isResolved) {
-                if (commentNode.__commentText.trim() ==='<html import="inner"/>') {
-                    console.log(2);
-                }
-
-                const 
-                    openNode = commentNode.openCommentNode,
-                    closeNode = commentNode.closeCommentNode,
-                    domNodes = commentNode.domNodes;
-
-                for (let next = openNode.nextSibling; next && next !== closeNode; next = next.nextSibling) {
-                    domNodes.push(next);                    
-                }
-
-                openNode.remove();
-                closeNode.remove();
-
-                commentNode.isResolved = true;
-            }
-        });
-    })(comments);
-    return [ comments, commentsLinear ];
-};
-*/
-
-// ------------------------
-// ------------------------
-// ------------------------
-
 const db = [
     {
         title: 'Дисциплины',
@@ -254,6 +54,10 @@ const db = [
             {
                 title: 'Дискретная математика',
                 id: 'discrete-math'
+            },
+            {
+                title: 'Физика',
+                id: 'physics'
             },
             {
                 title: 'Информатика',
@@ -362,7 +166,7 @@ const showArticle = (() => {
 
         currentArticle = article;
 
-        $('html, body').scrollTop(0);
+        // $('html, body').scrollTop(0);
     };
 
     return articleId => {
@@ -387,6 +191,10 @@ const showArticle = (() => {
                 articleEl.className = 'article';
                 articleEl.id = articleId;
                 articleEl.innerHTML = articleHTML;
+
+                if (window.MathJax) {
+                    setTimeout(() => MathJax.typeset(), 1000);
+                }
 
                 highlightListings(articleEl, () => {
                     articlesEl.appendChild(articleEl);
@@ -622,3 +430,7 @@ const init = () => {
 };
 
 /^interactive|complete$/.test(document.readyState) ? init() : window.addEventListener('load', init);
+
+// https://docs.mathjax.org/en/latest/input/tex/differences.html
+// http://docs.mathjax.org/en/latest/basic/mathematics.html#basic-mathematics
+// https://docs.mathjax.org/en/latest/input/tex/eqnumbers.html

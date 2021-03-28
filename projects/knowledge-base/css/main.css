@@ -65,7 +65,7 @@ b {
 
 .nav__scroll::-webkit-scrollbar-thumb {
     background: #c1c1c1;
-    outline: #333 solid 1px;
+    /*outline: #333 solid 1px;*/
     border-radius: 3px;
 }
 
