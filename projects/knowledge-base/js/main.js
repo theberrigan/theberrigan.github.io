@@ -4,6 +4,10 @@ const db = [
         type: 'article',
         items: [
             {
+                title: 'Разработка игр',
+                id: 'gamedev'
+            },
+            {
                 title: 'Актёрство, голос, пение',
                 id: 'acting'
             },
@@ -107,12 +111,20 @@ const db = [
                 title: 'Рисование',
                 id: 'art'
             },
+            {
+                title: 'Системное мышление',
+                id: 'system-thinking'
+            },
         ]
     },
     {
         title: 'Списки на изучение',
         type: 'list',
         items: [
+            {
+                title: 'Разработка игр',
+                id: 'gamedev'
+            },
             {
                 title: 'Английский язык',
                 id: 'english'

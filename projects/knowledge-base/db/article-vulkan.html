@@ -55,3 +55,283 @@ Queues бывают разных типов, каждый из которых и
 2. VkPhysicalDevices
 3. VkDevice
 4. VkPhysicalDeviceFeatures
+
+--------------------------------------------------------------------------------------------------------------------
+
+
+- GLWF's Window <-> GLWF's extension for Vulkan <-> Vulkan Instance
+
+Создать Vulkan instance:
+- Заполнить VkApplicationInfo
+- Заполнить VkInstanceCreateInfo (добавить extensions и layers)
+- vkCreateInstance()
+
+Добавить instance extensions:
+- Добавить в VkInstanceCreateInfo перед созданием VkInstance
+
+Validation Layers:
+- Добавить в VkInstanceCreateInfo перед созданием VkInstance
+- Раньше VL были для Instance и для Device, теперь только для Instance
+- Необходимо проверять доступность VL перед использованием
+- Добавляемые VL начинают работать только после создания VkInstance, поэтому для vkCreateInstance нужно добавлять VL по-особенному
+
+Physical device:
+- Проверить поддерживаемые фичи, позднее их нужно будет указать при создании Logical Device
+- Не каждый PD может поддерживать PD.graphicsFamily и PD.presentFamily Queues для созданной Surface, поэтому PD нужно выбирать с учётом созданной Surface
+- Не смотря на то, что возможно PD.graphicsFamily != PD.presentFamily и это будет работать, стоит добавить логику, которая проверяет PD.graphicsFamily == PD.presentFamily, чтобы улучшить производительность
+
+Logical device:
+- Является программным представлением Physical Device
+- Может быть несколько на один Physical Device
+- При создании указать нужные фичи, ранее запрошенные у Physical Device
+- При создании добавить LD-specific расширения
+- Добавлять LD-specific VLs не нужно, это deprecated
+- После создания LD, из него нужно получить хендлы на Queues, которые автоматически созданы вместе с LD с помощью vkGetDeviceQueue
+- ? Что если несколько мониторов
+
+Queue Families
+- Проверить, поддерживает ли девайс нужные QF
+- В одну Queue одним вызовом можно отправить несколько команд из разных потоков, тк. они имею свои собственные Command Buffers
+- Можно указывать приоритет
+- Нужные queues автоматически создаются вместе с LD, но потом нужно получить хендлы из этого LD с помощью vkGetDeviceQueue
+
+Surface:
+- Surface - это абстракция для окна
+- Surface должна создаваться после создания instance, но до выбора Physical device, тк. она может влиять на выбор PD
+
+Swapchain:
+- Vulkan не имеет дефолтного фреймбуфера, поэтому нужно создать свой набор буфферов, которые объединены в swapchain.
+  Приложение получает изображение из SC, рисует на нём и отправляет обратно в SC для презентации на экран.
+  SC синхронизирует презентацию изображения на экране с частотой развёртки монитора.
+- SC является расширением для LD.
+- Недостаточно одной проверки доступности SC, нужно проверить её совместимость с Surface, а так же следующие компоненты:
+  - VkSurfaceFormatKHR - из них будет выбран один формат для Swapchain (color depth)
+  - VkPresentModeKHR - из них будет выбран один Present Mode для Swapchain (conditions for “swapping” images to the screen)
+  - VkSurfaceCapabilitiesKHR - будет выбрано разрешение для Swapchain (resolution of images in swap chain)
+- Swapchain extent - разрешение буферов в SC - практически всегда совпадает с разрешением окна приложения.
+- При создании нужно указывать, какие операции мы собираемсы делать с изображениями в SC (color, depth, stencil...)
+- Не забыть по разному инифиализировать SC, если graphicsFamily и presentFamily одинаковые или разные
+
+ImageView:
+- Используется для доступа к Image'ам, созданным вручную или находящимся в Swapchain
+- Описывает, к какой области Image получить доступ, в виде какого буфера интерпретировать (color, depth, stencil...) и тд.
+- ImageView достаточно, чтобы использовать Image в качестве текстуры, но недостатчно, чтобы использовать её как render target
+
+Vsync:
+- Стандартная Vsync - это двойная буферизация
+- Тройная буферизация - более совершенный vsync с меньшей задержкой
+
+Pipeline:
+- Нужно иметь полный набор пайплайнов с разными шейдерами, фреймбуферами и тд, между которыми мы хотим переключаться
+- Создать шейдерные модули и указать их при создании пайплайна
+- Указать как будут передаваться вершины в vertex shader
+- Указать размеры viewport и scissors. Сначала при переносе Image во Framebuffer, её размер будет изменён до размера Viewport без соблюдения пропорций, а затем будет наложен Scissors в качестве маска.
+  Image -> Resize to Viewport -> Mask with Scissors -> Place to Framebuffer 
+  Window -> Surface -> Framebuffer -> Viewport (область framebuffer'а)
+- Включить depth и stencil буфер
+- Указать min/max depth, polygon mode, cull mode, front face...
+- Указать multi-sampling
+- Включить Color Blending
+- Создать VkPipelineLayout указать uniform-константы/переменные, которые будут передаваться в шейдеры
+- Создать Render Pass:
+  - Прикрепить Color Attachment и указать как обращаться с ним (на нём будет рисоваться кадр)
+  - Каждый Render Pass состоит из нескольких Subpasses
+  - Render pass берёт Framebuffer'ы, которые содержат Attachments, каждый из которых содержит Image View, каждый из которых представляет Image из Swapchain
+    VkAttachmentReference[] -> VkSubpassDescription[] -> | 
+                            VkAttachmentDescription[] -> | -> VkRenderPassCreateInfo
+
+Command Pools & Command Buffers:
+- CP управляет памятью, CB получают память, выделенную CP
+- Каждый CP может работать с Queue только одного типа 
+- CB, содержащий в себе команду, отправляется в одну из Queue (graphics, present, ...)
+
+Синхронизация:
+- Ресурсы:
+  - https://gpuopen.com/learn/vulkan-barriers-explained/
+  - https://cpp-rendering.io/barriers-vulkan-not-difficult/
+  - https://gpuopen.com/performance/#barriers
+  - https://mynameismjp.wordpress.com/2018/03/06/breaking-down-barriers-part-1-whats-a-barrier/
+  - https://themaister.net/blog/2019/08/14/yet-another-blog-explaining-vulkan-synchronization/
+  - https://www.khronos.org/blog/understanding-vulkan-synchronization
+  - https://vkguide.dev/docs/chapter-1/vulkan_command_flow/
+  - https://stackoverflow.com/a/38591525
+  - https://github.com/Tobski/simple_vulkan_synchronization/blob/e2d793298229738c07469b170c3f4b3dbc5d7687/thsvs_simpler_vulkan_synchronization.h#L298
+  - https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples
+  - https://www.khronos.org/blog/vulkan-timeline-semaphores
+  - Keeping your GPU fed.pdf
+  - D3D12 Right on Queue.pdf
+- Commands are also guaranteed to start in the exact order they were inserted [in Queue], but because they can 
+  run in parallel, there is no guarantee that the commands will complete in that same order.
+- The in-queue tools for synchronization that ensure these commands wait correctly on their dependencies 
+  are pipeline barriers, events, and subpass dependencies. 
+- Command buffer is some sequence of commands (in recorded order!). And queue is too a sequence of recorded commands (concatenated from submited command buffers).
+  The queue has some leeway in which order it executes the commands. User defined synchronization primitives set a boundaries to this leeway.
+- Fences или events подходят для сообщения приложению о завершеии определённых этапов пайплайна 
+- GPU очень конвейерное устройство:
+  - Каждая команда сначала попадает на этап TOP_OF_PIPE
+  - Затем проходит свои индивидуальные этапы пайплайна
+  - Затем заканчивает свою работу на этапе BOTTOM_OF_PIPE
+- В этом примере стадии COMPUTE нужен результат работы стадии VERTEX, но между ними есть стадия FRAGMENT, 
+  от которой работа COMPUTE не зависит, поэтому в качестве src указан VERTEX, а в качестве dst - COMPUTE:
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_VERTEX_SHADER_BIT, VK_PIPELINE_COMPUTE_SHADER_BIT);
+- Синхронизация применяется для всей VkQueue, а не только для одного CommandBuffer'a
+- Fence нужна для синхронизации приложения с операциями рендеринга (CPU <-> GPU), а Semaphore - для синхронизации внутри или между command queues (GPU <-> GPU).
+- Barriers показывают как зависимости между операциями переданы GPU и драйверу. https://gpuopen.com/performance/#barriers
+- Barriers требуют указать ресурс, source и destination в pipeline state
+- 3 типа синхронизации:
+  - Pipeline Barriers, Events and Subpass Dependencies (Within a queue; Explicit memory dependencies)
+  - Semaphores (Between Queues)
+  - Fences (синхронизация CPU и GPU для всей очереди операций)
+- Производительность:
+  - Minimize the number of barriers used per frame.
+    - Barriers can drain the GPU of work.
+    - Don’t issue read to read barriers. Transition the resource into the correct state the first time.
+  - Batch groups of barriers into a single call to reduce overhead of barriers.
+    - This creates less calls into the driver and allows the driver to remove redundant operations.
+  - Avoid GENERAL / COMMON layouts unless required.
+    - Always use the optimized state for your usage.
+- Понять:
+  - Render Pass & Subpasses
+  - Queues
+  - CommandPool
+  - CommandBuffer
+  - Pipeline, Pipeline Stages
+  - [Subpass] Dependencies
+  - Fences, Semaphores, Execution/Memory Barriers, Events
+  - В каком порядке выполняются комманды из одного буфера, из двух буферов и из разных буферов в разных Queues
+    Как они проходят/пропускают Pipeline Stages по умолчанию
+  - В каком порядке и сколько раз всё это запускается, как общается с приложением на CPU
+***
+- Внутри Queue команды запускаются в том порядке, в котором были добавлены в Queue, но выполняются они параллельно, поэтому одновременное окончание не гарантируется
+- Синхронизация:
+  - СPU с GPU:
+    - Fence
+  - GPU с GPU:
+    - Синхронизация нескольких Queues:
+      - Semaphore (Signal/Wait) - передаётся двум таскам, которые должны быть синхронизированы. Оба таска запускаются, но второй таск вызывает semaphore.wait(), 
+        то есть блокируется и ждёт, когда завершится первый таск и вызовет semaphore.signal().
+    - Синхронизация внутри одной Queue:
+      - Barriers:
+        - Execution barriers - в vkCmdPipelineBarrier(srcStageMask, dstStageMask) этапы, указанные в dstStageMask будут ждать, пока воплнятся этапы srcStageMask.
+          При этом srcStageMask и dstStageMask - это битовые маски, поэтому можно указываться несколько разных этапов. Для srcStageMask GPU выберет тот этап,
+          который встретится первым, а для dstStageMask - тот, который встретится последним. Такое маскирование работает только с Execution barriers и не работает с Memory barriers.
+        - Memory barriers - когда одно ядро пишет в кэш, то эти данные не available и не visible для других ядер. Чтобы это исправить ставить барьер, до которого одно ядро пишет в кэш 
+          и flush'ит этот кэш в память, а другое ядро, работающее после барьера, читает эти изменения в памяти. These barriers are similar to normal vkCmdPipelineBarrier operations, 
+          except the source stage and access mask part of the barrier is submitted to the source queue and the destination stage and access mask is submitted to the destination queue. 
+          Using VK_SHARING_MODE_CONCURRENT when creating Buffers and Images avoids the needs for these barriers, but usually results in worse performance.
+          - Global MB
+          - Buffer MB
+          - Image MB
+      - Events
+      - Subpass dependencies
+
+
+CommandPool1:
+  - CommandBuffer1: [ Command1, Command2, Command3, ... ]
+  - CommandBuffer2: [ Command1, Command2, Command3, ... ]
+
+
+Требования к кастомизации пайплайна:
+- Offscreen: зеркала, съёмка на камеру, сплитскрин
+- Vsync
+- Двойная/тройная буферизация
+- Ограничения кадров
+- Рендеринг в многократном разрешении
+- Разные типы сглаживания
+- Deffered/Forward/+ Rendering
+
+
+Требования к видеокарте и драйверу:
+- Аппаратная поддержка ASTC
+- Raytracing
+- Адаптивный шейдинг
+- PhysX
+- Compute Shader
+- Память
+- Multiple render targets for Deffered Rendering
+
+Понять разницу:
+- Частота развёрки
+- Ограничение кадров в swapchain
+- Ограничение кадров вывода на экран
+- swapChainSupport.capabilities.minImageCount и backbuffers и triple buffering
+- ! double/truple buffering // SC.imagesCount // SC.presentMode // Vsync/Adaptive Vsync
+- https://stackoverflow.com/q/39557141
+- Double buffering or triple buffering: https://cutt.ly/OvvHhkN, https://cutt.ly/ovvJ27G
+- Vulkan Mobile Best Practices: https://github.com/KhronosGroup/Vulkan-Samples
+
+VkDeviceMemory --<> VkImage --<> VkImageView --<> VkFramebuffer.pAttachments[i] --|
+                                                                                  |--<> Render Pass Instance
+                                                                   VkRenderPass --|
+
+                                                                   VkRenderPass.attachments[i] --> Subpass.pColorAttachments
+                                                                   VkRenderPass.attachments[i] --> Subpass.pDepthStencilAttachments
+
+CommandPool --<> CommandBuffer[]
+
+Ссылки:
+- Official Vulkan samples: https://github.com/KhronosGroup/Vulkan-Samples/tree/master/samples/
+- Vulkan Best Practices and Performance: https://github.com/KhronosGroup/Vulkan-Samples/tree/master/samples/performance
+- UML Basics: http://10minbasics.com/uml-essentials-in-10-minutes/
+- Writing an efficient Vulkan renderer: https://zeux.io/2020/02/27/writing-an-efficient-vulkan-renderer/
+- Render graphs and Vulkan - http://themaister.net/blog/2017/08/15/render-graphs-and-vulkan-a-deep-dive/
+- Интеграция vulkan-1.dll в exe: https://github.com/zeux/volk
+- Simplified Vulkan Sync: https://github.com/Tobski/simple_vulkan_synchronization
+- SIMD: https://zeux.io/2019/02/17/flavors-of-simd/
+- Meshoptimizer: https://github.com/zeux/meshoptimizer
+- Статьи Samsung: https://developer.samsung.com/galaxy-gamedev/resources.html
+- Subpasses #1: https://www.saschawillems.de/blog/2018/07/19/vulkan-input-attachments-and-sub-passes/
+- Subpasses #2: https://www.khronos.org/assets/uploads/developers/library/2016-vulkan-devday-uk/6-Vulkan-subpasses.pdf 
+- Огромное кол-во семплов: https://github.com/SaschaWillems/Vulkan/
+- Command Pool/Buffer: https://gpuopen.com/learn/understanding-vulkan-objects/
+- Deffered/Forward Rendering: 
+  https://gamedevelopment.tutsplus.com/articles/forward-rendering-vs-deferred-rendering--gamedev-12342
+  https://habr.com/ru/post/420565/
+- Демо-сцены: https://www.nvidia.com/ru-ru/geforce/community/demos/
+- Robust pipeline cache serialization: https://zeux.io/2019/07/17/serializing-pipeline-cache/
+- Vulkan Sync: https://themaister.net/blog/2019/08/14/yet-another-blog-explaining-vulkan-synchronization/
+- Vulkan Sync Examples: https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples
+- Memory Barriers: https://gpuopen.com/learn/vulkan-barriers-explained/
+- Lock-Free Programming: https://docs.microsoft.com/ru-ru/windows/win32/dxtecharts/lockless-programming
+- ILP: https://en.wikipedia.org/wiki/Instruction-level_parallelism
+- Vulkan Dos & Donts: https://developer.nvidia.com/blog/vulkan-dos-donts/
+
+Шейдеры:
+- Vertex shader принимает на вход по одной вершине за раз (то есть функция main вызывается для каждой вершины отдельно) и выдаёт конечные координаты вершины в пространстве и прочие данные для Fragment shader.
+  Координаты на выходе - 4D вектор (NDC), каждый из компонентов которого разделён на последний компонент вектора, при этом X и Y комопненты попадают в интервал [-1; 1]. 
+  В NDC ось X направлена вправо и входит в [-1, 1], Y направлена вниз и входит в [-1, 1], Z направлена вперёд и входит в [0, 1], W равна 1.
+  Вся эта информация будет интерполирована для каждого фрагмента, чтобы создать плавный градиент.
+- Fragment shader вызывает функцию main для каждого фрагмента отдельно
+
+Память и выравнивание:
+- Производительность выше, когда переменная находится по адресу памяти, кратному размеру типа этой переменной
+- https://software.intel.com/content/www/us/en/develop/articles/coding-for-performance-data-alignment-and-structures.html
+- https://en.wikipedia.org/wiki/Data_structure_alignment
+- #pragma pack?
+- Сериализация: https://isocpp.org/wiki/faq/serialization
+
+Всё, что нужно учесть:
+- Offscreen: зеркала, съёмка на камеру, сплитскрин
+- Vsync
+- Двойная/тройная буферизация
+- Ограничения кадров
+- Разные типы сглаживания: MSAA, FXAA, DLSS
+- Deffered/Forward/+ Rendering
+- Рендеринг в многократном разрешении
+- Анизотопная фильтрация
+- PBR, Ray Tracing
+- Многопоточный рендеринг
+
+MAILBOX:
+- Необходимо минимум три буффера: на одном рисуется, один всегда содержит следующий готовый кадр, с третьего монитор выводит изображение на экран
+- Нет очереди для вывода, вместо этого один слот для буфера со следующим кадром
+- Vsync гарантирован
+- GPU потоянно будет под максимальной нагрузкой, CPU тоже не будет проставивать 
+- Сильно снижает input lag
+
+FIFO:
+- Необходимо минимум два буффера: back-буфер и front-буфер. Но если кадры будут проседать ниже частоты обновления монитора, то FPS упадёт в два раза, поэтому лучше 3 буфера.
+- Используется очередь (какого размера?), при заполнении которой GPU и CPU отдыхают
+- Vsync гарантирован
+- GPU и CPU отдыхают, когда GPU нарисовал полную очередь кадров
+- Способствует увеличению input lag'а
