@@ -44,6 +44,10 @@ const db = [
                 id: 'asm'
             },
             {
+                title: 'Реверс инжиниринг',
+                id: 're'
+            },
+            {
                 title: 'Криптография',
                 id: 'crypto'
             },
@@ -78,6 +82,10 @@ const db = [
             {
                 title: 'Машинное обучение',
                 id: 'machine-learning'
+            },
+            {
+                title: 'Vulkan',
+                id: 'vulkan'
             },
             {
                 title: 'OpenGL',

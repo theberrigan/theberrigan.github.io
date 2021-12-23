@@ -1,4 +1,96 @@
 <h1>Vulkan</h1>
+<pre>
+initWindow(WIDTH, HEIGHT):
+    m_window = glfwCreateWindow(WIDTH, HEIGHT);
+
+initVulkan():    
+    createInstance():
+        m_instance = vkCreateInstance(VkInstanceCreateInfo{
+            ppEnabledExtensionNames: [], 
+            ppEnabledLayerNames:     []
+        })
+
+    setupDebugMessenger():
+        m_debugMessenger = CreateDebugUtilsMessengerEXT(m_instance)
+
+    createSurface():
+        m_surface = glfwCreateWindowSurface(m_instance, m_window)
+
+    pickPhysicalDevice():
+        for device in vkEnumeratePhysicalDevices(m_instance):
+            if isDeviceSuitable(device):
+                m_physicalDevice = device
+                return
+
+    createLogicalDevice():
+        familyIndices = findQueueFamilies(m_physicalDevice, m_surface)
+
+        m_device = vkCreateDevice(VkDeviceCreateInfo{ 
+            pQueueCreateInfos:       unique(familyIndices).map(queueFamilyIndex => VkDeviceQueueCreateInfo{ queueFamilyIndex }),
+            pEnabledFeatures:        VkPhysicalDeviceFeatures(),
+            ppEnabledExtensionNames: [],
+            ppEnabledLayerNames:     []
+        })
+        m_graphicsQueue = vkGetDeviceQueue(m_device, familyIndices.graphicsFamily)
+        m_presentQueue = vkGetDeviceQueue(m_device, familyIndices.presentFamily)
+
+    createSwapChain(m_device, m_physicalDevice, m_surface, m_window):
+        m_swapChain = vkCreateSwapchainKHR(m_device);
+        m_swapChainImages = vkGetSwapchainImagesKHR(m_device, m_swapChain);
+        m_swapChainImageFormat = surfaceFormat.format;
+        m_swapChainExtent = extent;
+
+    createImageViews(m_device, m_swapChainImages, m_swapChainImageFormat):
+        m_swapChainImageViews[i] = vkCreateImageView(m_device, m_swapChainImages[i]);
+
+    createRenderPass(m_device, m_swapChainImageFormat):
+        m_renderPass = vkCreateRenderPass(m_device)
+
+    createGraphicsPipeline(m_device, m_swapChainExtent, m_pipelineLayout, m_renderPass):
+        m_pipelineLayout = vkCreatePipelineLayout(m_device);
+        m_graphicsPipeline = vkCreateGraphicsPipelines(m_device)
+
+    createFramebuffers():
+        for i in range(len(m_swapChainImageViews)):
+            m_swapChainFramebuffers[i] = vkCreateFramebuffer(m_device, VkFramebufferCreateInfo{
+                m_renderPass, 
+                m_swapChainExtent.width, 
+                m_swapChainExtent.height
+            })
+
+    createCommandPool():
+        familyIndices = findQueueFamilies(m_physicalDevice)
+        m_commandPool = vkCreateCommandPool(m_device, VkCommandPoolCreateInfo{ familyIndices.graphicsFamily })
+
+    createCommandBuffers():
+        cmdBuffCount = len(m_swapChainFramebuffers)
+        m_commandBuffers = vkAllocateCommandBuffers(m_device, VkCommandBufferAllocateInfo{ m_commandPool, cmdBuffCount })
+
+        for i in range(cmdBuffCount) {
+            vkBeginCommandBuffer(m_commandBuffers[i])
+                vkCmdBeginRenderPass(m_commandBuffers[i], VkRenderPassBeginInfo{ 
+                    m_renderPass, 
+                    m_swapChainFramebuffers[i], 
+                    m_swapChainExtent 
+                })
+                    vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline)
+                    vkCmdDraw(m_commandBuffers[i])
+                vkCmdEndRenderPass(m_commandBuffers[i])
+            vkEndCommandBuffer(m_commandBuffers[i])
+        }
+
+    createSyncObjects():
+        m_imagesInFlight.resize(m_swapChainImages.size())
+
+        for i in range(MAX_FRAMES_IN_FLIGHT) {
+            m_imageAvailableSemaphores[i] = vkCreateSemaphore(m_device)
+            m_renderFinishedSemaphores[i] = vkCreateSemaphore(m_device)
+            m_inFlightFences[i]           = vkCreateFence(m_device)
+        }
+
+
+</pre>
+
 В вулкане все объекты создаются с помощью vkCreateXXX или vkAllocateXXX.
 После того, как объект стал не нужен, его нужно удалить через vkDestroyXXX или vkFreeXXX.
 Все эти функции имеют один обший необязательный параметр pAllocator, который позваляет передать кастомный аллокатор.
@@ -335,3 +427,9 @@ FIFO:
 - Vsync гарантирован
 - GPU и CPU отдыхают, когда GPU нарисовал полную очередь кадров
 - Способствует увеличению input lag'а
+
+--------------------------------------------------
+
+Типы памяти:
+- Память CPU (host memory)
+- Память GPU (device memory)
