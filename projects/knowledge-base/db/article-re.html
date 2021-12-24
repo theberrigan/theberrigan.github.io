@@ -13,7 +13,63 @@
     </tbody>
 </table>
 
-Кадры стека – это блоки памяти, выделяемые в стеке программы на время одного выполнения функции.
+В x86 начало стека раположено в бОльших адресах (внизу), а растёт к меньшим (вверх).
 
-EBP указывает в самое начало стека или в начало текущего кадра стека.
-ESP указывает на вершину стека и, соответсвенно, текущего стекового кадра.
+<pre>
+| - MIN
+| ^
+| ^ 
+| ^
+| ^ 
+| ^ 
+| - MAX
+</pre>
+
+
+<p>Кадры стека – это блоки памяти, выделяемые в стеке программы на время одного выполнения функции.</p>
+
+<p>
+    <code>EBP</code> указывает в самое начало стека или в начало текущего кадра стека.<br>
+    <code>ESP</code> указывает на вершину стека и, соответсвенно, текущего стекового кадра.
+</p>
+
+<strong>cdecl:</strong>
+
+<pre>
+main:
+    push 444        ; закинуть в стек arg_4
+    push 333        ; закинуть в стек arg_3
+    push 222        ; закинуть в стек arg_2
+    push 111        ; закинуть в стек arg_1
+    call cdeclFunc
+    add esp,0x10    ; "забыть" про четыре аргумента в стеке
+
+cdeclFunc:
+    push  ebp      ; сохранить в стеке базовый адрес предыдущего стек-фрейма 
+    mov   ebp,esp  ; установить в качестве начала стека базовый адрес нового стек-фрейма 
+    sub   esp,0xD0 ; выделить место в стеке (0xD0 байт) для будущих локальных переменных этой функции
+    push  ebx      ; ┐
+    push  esi      ; ┤ сохранить в стек значения регистров
+    push  edi      ; ┘ 
+    ...
+    pop   edi      ; ┐
+    pop   esi      ; ┤ восстановить значения регистров из стека
+    pop   ebx      ; ┘ 
+    add   esp,0xD0 ; освободить выделенное место в стеке для локальных переменных
+    mov   esp,ebp  ; сделать вершиной стека начало стек-фрейма текущей функции
+    pop   ebp      ; восстановить адрес начала стек-фрейма вызывающей функции
+    ret
+</pre>
+
+cdecl, Microsoft, x86_32:
+- https://docs.microsoft.com/en-us/cpp/cpp/cdecl?view=msvc-170
+- __cdecl is the default calling convention for C and C++ programs. 
+- Because the stack is cleaned up by the caller, it can do vararg functions.
+- Because the C naming and calling conventions are the default, the only time you must use __cdecl in x86 code is when you have specified the /Gv (vectorcall), /Gz (stdcall), or /Gr (fastcall) compiler option. 
+- The /Gd compiler option forces the __cdecl calling convention.
+
+Microsoft, x86_64:
+- https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170
+
+Intel:
+- https://www.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/c-c-calling-conventions.html
