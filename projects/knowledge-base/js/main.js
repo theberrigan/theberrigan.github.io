@@ -4,6 +4,22 @@ const db = [
         type: 'article',
         items: [
             {
+                title: 'Математика',
+                id: 'math'
+            },
+            {
+                title: 'WebGL',
+                id: 'webgl'
+            },
+            {
+                title: 'OpenGL',
+                id: 'opengl'
+            },
+            {
+                title: 'Vulkan',
+                id: 'vulkan'
+            },
+            {
                 title: 'Разработка игр',
                 id: 'gamedev'
             },
@@ -56,10 +72,6 @@ const db = [
                 id: 'hacking'
             },
             {
-                title: 'Математика',
-                id: 'math'
-            },
-            {
                 title: 'Дискретная математика',
                 id: 'discrete-math'
             },
@@ -82,18 +94,6 @@ const db = [
             {
                 title: 'Машинное обучение',
                 id: 'machine-learning'
-            },
-            {
-                title: 'Vulkan',
-                id: 'vulkan'
-            },
-            {
-                title: 'OpenGL',
-                id: 'opengl'
-            },
-            {
-                title: 'WebGL',
-                id: 'webgl'
             },
             {
                 title: 'Цифровые сигналы',
@@ -213,7 +213,15 @@ const showArticle = (() => {
                 articleEl.innerHTML = articleHTML;
 
                 if (window.MathJax) {
-                    setTimeout(() => MathJax.typeset(), 1000);
+                    setTimeout(() => {
+                        /*MathJax.Config({
+                            CommonHTML: {
+                                scale: 160
+                            }
+                        });*/
+                        MathJax.startup.output.options.scale = 1.3;        
+                        MathJax.typeset();
+                    }, 1000);
                 }
 
                 highlightListings(articleEl, () => {
