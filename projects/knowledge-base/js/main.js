@@ -219,7 +219,7 @@ const showArticle = (() => {
                                 scale: 160
                             }
                         });*/
-                        MathJax.startup.output.options.scale = 1.3;        
+                        MathJax.startup.output.options.scale = 1.1;        
                         MathJax.typeset();
                     }, 1000);
                 }

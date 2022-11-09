@@ -143,7 +143,12 @@ b {
 }
 
 .article h3:not(:first-child) {
-    margin-top: 20px;
+    margin-top: 50px;
+}
+
+.article h2,
+.article h3 {
+    margin-bottom: 15px;
 }
 
 
