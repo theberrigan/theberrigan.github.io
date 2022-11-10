@@ -170,3 +170,14 @@ b {
 .spoiler_opened {
     display: block;
 }
+
+
+/**/
+
+.color_green {
+    color: #0d9f0d;
+}
+
+.color_red {
+    color: #ee0000;
+}
