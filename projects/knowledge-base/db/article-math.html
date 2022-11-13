@@ -304,6 +304,11 @@
     Последовательность \(\displaystyle (y_n)\) называют <strong>возрастающей/убывающей</strong>, если каждый её член больше/меньше предыдущего.<br>
     Возрастающие и убывающие последовательности объединяют общим термином — <strong>монотонные последовательности</strong>.
 </p>
+<p>
+    Последовательность <strong>ограничена сверху/снизу</strong>, если все её элементы не больше/не меньше определённых чисел, которые называются <strong>верхней/нижней границей</strong>.<br>
+    Последовательность называется <strong>ограниченной</strong>, если она одновременно ограничена и сверху, и снизу.
+</p>
+<p>Последовательность \(\displaystyle y_n=C\), где \(\displaystyle C\) – это констанста, называют <strong>постоянной</strong>, или <strong>стационарной</strong>.</p>
 Прогрессии:
 <ul>
     <li>
@@ -441,7 +446,7 @@
             <li>Квадрат суммы: \(\displaystyle (a+b)^2=a^2+2ab+b^2\)</li>
             <li>Квадрат разности: \(\displaystyle (a−b)^2=a^2−2ab+b^2\)</li>            
         </ul>
-        Нужно заданный трёхчлен привести к виду \(\displaystyle (a±b)^2±some expr\)<br>
+        Нужно заданный трёхчлен привести к виду \(\displaystyle (a \pm b)^2 \pm some expr\)<br>
         Пример: 
         <ol>
             <li>\(\displaystyle x^2+14x+45=0\)</li>
@@ -498,40 +503,77 @@
 
 <h3>Тригонометрия</h3>
 <p>
-    <strong>Slope</strong> (\(\displaystyle tan\)) — коэффициент наклона прямой.<br>
+    <strong>Slope</strong> (\(\displaystyle \tan\)) — коэффициент наклона прямой.<br>
     Он равен нулю, если прямая горизонтальна (параллельна \(\displaystyle x\)).<br>
     Он равен бесконечности, если прямая вертикальна (параллельна \(\displaystyle y\)).<br>
 </p>
 Функции (исходные функции переводят координаты из полярной системы в декартову, а обратные функции — обратно): 
 <ul>
-    <li>\(\displaystyle x = cos\alpha\) — чётная функция; отношение прилежащего катета к гипотенузе (обратная функция: \(\displaystyle \alpha = arccos(cos\alpha)\))</li>
-    <li>\(\displaystyle x = sin\alpha\) — нечётная функция; отношение противолежащего катета к гипотенузе (обратная функция: \(\displaystyle \alpha = arcsin(sin\alpha)\))</li>
+    <li>\(\displaystyle x = \cos\alpha\) — чётная функция; отношение прилежащего катета к гипотенузе (обратная функция: \(\displaystyle \alpha = \arccos(\cos\alpha)\))</li>
+    <li>\(\displaystyle y = \sin\alpha\) — нечётная функция; отношение противолежащего катета к гипотенузе (обратная функция: \(\displaystyle \alpha = \arcsin(\sin\alpha)\))</li>
     <li>
-        \(\displaystyle tan\alpha=\frac{sin\alpha}{cos\alpha}=\frac{y}{x}=tan(\alpha+\pi)\) — отношение противолежащего катета к прилежащему, переводит радианы в slope (от 0 до бесконечности) (обратная функция: \(\displaystyle \alpha = arctan(tan\alpha)\))
+        \(\displaystyle \tan\alpha=\frac{\sin\alpha}{\cos\alpha}=\frac{y}{x}=\tan(\alpha+\pi)\) — отношение противолежащего катета к прилежащему, переводит радианы в slope (от 0 до бесконечности) (обратная функция: \(\displaystyle \alpha = \arctan(\tan\alpha)\))
         <ul>
             <li><code>Math.atan(slope)</code> – плохая по двум причинам: не отличает диаметрально противоположны углы и не может вычислить результат для углов 90 и 270 градусов</li>
             <li><code>Math.atan2(y, x)</code> – вариант лучше</li>
         </ul>        
     </li>
 </ul>
+<p>
+    \(\displaystyle x^2+y^2=1^2\) — <strong>уравнение единичной окружности</strong>, т.к. \(\displaystyle x\) и \(\displaystyle y\) образуют катеты треугольника, а \(\displaystyle 1\) – гипотенузу.<br>
+    Поскольку \(\displaystyle x = \cos\alpha\) и \(\displaystyle y = \sin\alpha\), то это уравнение можно преобразовать к виду \(\displaystyle \cos^2\alpha + \sin^2\alpha = 1^2\).
+</p>
 Свойства:
 <ul>
-    <li>\(\displaystyle sin(−t)=−sint\)</li>
-    <li>\(\displaystyle cos(−t)=cost\)</li>
-    <li>\(\displaystyle tan(−t)=−tant\)</li>
-    <li>\(\displaystyle ctg(−t)=−ctgt\)</li>
-    <li>\(\displaystyle sin(t+2\pi k)=sint\)</li>
-    <li>\(\displaystyle cos(t+2\pi k)=cost\)</li>
-    <li>\(\displaystyle sin(t+\pi)=−sint\)</li>
-    <li>\(\displaystyle cos(t+\pi)=−cost\)</li>
-    <li>\(\displaystyle tan(t+\pi)=tant\)</li>
-    <li>\(\displaystyle ctg(t+\pi)=ctgt\)</li>
-    <li>\(\displaystyle tan(t+\pi k)=tant\)</li>
-    <li>\(\displaystyle ctg(t+\pi k)=ctgt\)</li>
-    <li>\(\displaystyle sin(t+\frac{\pi}{2})=cost\)</li>
-    <li>\(\displaystyle cos(t+\frac{\pi}{2})=−sint\)</li>
+    <li>\(\displaystyle \sin(−t)=−\sin t\) — нечётность синуса</li>
+    <li>\(\displaystyle \cos(−t)=\cos t\) — чётность косинуса</li>
+    <li>\(\displaystyle \tan(−t)=−\tan t\)</li>
+    <li>\(\displaystyle \cot(−t)=−\cot t\)</li>
+    <li>\(\displaystyle \sin(t+2\pi k)=\sin t\)</li>
+    <li>\(\displaystyle \cos(t+2\pi k)=\cos t\)</li>
+    <li>\(\displaystyle \sin(t+\pi)=−\sin t\)</li>
+    <li>\(\displaystyle \cos(t+\pi)=−\cos t\)</li>
+    <li>\(\displaystyle \tan(t+\pi)=\tan t\)</li>
+    <li>\(\displaystyle \cot(t+\pi)=\cot t\)</li>
+    <li>\(\displaystyle \tan(t+\pi k)=\tan t\)</li>
+    <li>\(\displaystyle \cot(t+\pi k)=\cot t\)</li>
+    <li>\(\displaystyle \sin(t+\frac{\pi}{2})=\cos t\)</li>
+    <li>\(\displaystyle \cos(t+\frac{\pi}{2})=−\sin t\)</li>
+    <li>\(\displaystyle \arccos a+\arccos(−a)=\pi\), где \(\displaystyle a∈[−1;1]\)</li>
+    <li>\(\displaystyle \arcsin(−a)=−\arcsin a\), где \(\displaystyle a∈[−1;1]\)</li>
+    <li>\(\displaystyle \arctan(−a)=−\arctan a\)</li>
+    <li>\(\displaystyle \operatorname{arccot}(−a)=\pi−\operatorname{arccot}a\)</li>
 </ul>
-
+Формулы:
+<ul>
+    <li>\(\displaystyle \sin^2 \alpha + \cos^2 \alpha = 1\) — формула единичной окружности</li>
+    <li>\(\displaystyle \sin(\alpha \pm \beta) = \sin \alpha \cdot \cos \beta \pm \cos \alpha \cdot \sin \beta\) — синус суммы/разности</li>
+    <li>\(\displaystyle \cos(\alpha \pm \beta) = \cos \alpha \cdot \cos \beta \mp \sin \alpha \cdot \sin \beta\) — косинус суммы/разности</li>
+    <li>\(\displaystyle \sin 2x = 2 \sin x \cdot \cos x\) — формула синуса двойного аргумента</li>
+    <li>\(\displaystyle \cos 2x = \cos^2 x − \sin^2 x\) — формула косинуса двойного аргумента</li>
+    <li>\(\displaystyle \tan 2x = \frac{2 \tan x}{1 − \tan^2 x}\) — формула тангенса двойного аргумента</li>
+    <li>\(\displaystyle \cos^2 \frac{x}{2} = \frac{1 + \cos x}{2}\) — формула понижения степени косинуса (формула половинного аргумента)</li>
+    <li>\(\displaystyle \sin^2 \frac{x}{2} = \frac{1 - \cos x}{2}\) — формула понижения степени синуса (формула половинного аргумента)</li>
+    <li>\(\displaystyle \tan^2 \frac{x}{2} = \frac{1−\cos x}{1 + \cos x}\) — формула понижения степени тангенса (формула половинного аргумента)</li>
+    <li>\(\displaystyle \tan(\alpha \pm \beta) = \frac{\tan \alpha \pm \tan \beta}{1 \mp \tan \alpha \cdot \tan \beta}\) — тангенс суммы/разности</li>
+    <li>\(\displaystyle \tan \alpha \cdot \cot \alpha = \frac{\sin \alpha}{\cos \alpha} \cdot \frac{\cos \alpha}{\sin \alpha} = 1\), где \(\displaystyle t \ne \frac{\pi k}{2}, k∈Z\)</li>
+    <li>\(\displaystyle 1 + \tan^2 \alpha = \frac{1}{\cos^2 \alpha}\), где \(\displaystyle \alpha \ne \frac{\pi}{2} + \pi k\)</li>
+    <li>\(\displaystyle 1 + \cot^2 \alpha = \frac{1}{\sin^2 \alpha}\), где \(\displaystyle \alpha \ne \pi k\)</li>
+    <li>\(\displaystyle \sin (s+t) \pm \sin (s−t) = 2 \sin \frac{(s+t) \pm (s−t)}{2} \cos \frac{(s+t) \mp (s−t)}{2}\) — преобразование сумм/разностей синусов в произведение</li>
+    <li>\(\displaystyle \cos (s+t) + \cos (s−t) = 2 \cos \frac{(s+t) + (s−t)}{2} \cos \frac{(s+t) - (s−t)}{2}\) — преобразование сумм косинусов в произведение</li>
+    <li>\(\displaystyle \cos (s+t) - \cos (s−t) = -2 \sin \frac{(s+t) + (s−t)}{2} \sin \frac{(s+t) - (s−t)}{2}\) — преобразование разностей косинусов в произведение</li>
+    <li>\(\displaystyle \sin s \cdot \cos t = \frac{\sin(s+t) + \sin(s−t)}{2}\) — формула произведения синуса и косинуса</li>
+    <li>\(\displaystyle \cos s \cdot \cos t = \frac{\cos(s+t) + \cos(s−t)}{2}\) — формула произведения косинусов</li>
+    <li>\(\displaystyle \sin s \cdot \sin t = \frac{\cos(s-t) - \cos(s+t)}{2}\) — формула произведения синусов</li>
+    <li>\(\displaystyle A \cdot \sin x + B \cdot \cos x = \sqrt{A^2 + B^2} \cdot \sin(x+t)\), где \(\displaystyle t\) – вспомогательный аргумент — метод введения вспомогательного угла</li>
+</ul>
+Уравнения:
+<ul>
+    <li>Если \(\displaystyle \cos x=a\), где \(\displaystyle |a|\leq1\), то \(\displaystyle x=\pm \arccos a+2 \pi k\), где \(\displaystyle k∈Z\)</li>
+    <li>Если \(\displaystyle \sin x=a\), где \(\displaystyle |a|\leq1\), то \(\displaystyle x=(−1)^k \arcsin a+\pi k\), где \(\displaystyle k∈Z\)</li>
+    <li>Если \(\displaystyle \tan x=a\), то \(\displaystyle x=\arctan a+\pi k\), где \(\displaystyle k∈Z\)</li>
+    <li>Если \(\displaystyle \cot x=a\), то \(\displaystyle x=\operatorname{arccot} a+\pi k\), где \(\displaystyle k∈Z\)</li>
+</ul>
 <table class="table table-bordered" style="max-width: 1280px;">
     <thead>
         <tr>
@@ -544,25 +586,25 @@
     </thead>
     <tbody>
         <tr>
-            <td>\(\displaystyle sin=\frac{opposit}{hypotenuse}\)</td>
-            <td>\(\displaystyle arcsin(sin^{-1})\)</td>
-            <td>\(\displaystyle csc=\frac{1}{sin}\)</td>
-            <td>\(\displaystyle arccsc(csc^{-1})\)</td>
+            <td>\(\displaystyle \sin=\frac{opposite}{hypotenuse}\)</td>
+            <td>\(\displaystyle \arcsin(\sin^{-1})\)</td>
+            <td>\(\displaystyle \csc=\frac{1}{\sin}\)</td>
+            <td>\(\displaystyle \operatorname{arccsc}(\csc^{-1})\)</td>
             <td rowspan="3" style="padding: 0; width: 1px;">
                 <img src="images/math/trig_cottan_line.png" style="width: 260px; height: 260px;">
             </td>
         </tr>
         <tr>
-            <td>\(\displaystyle cos=\frac{adjacent}{hypotenuse}\)</td>            
-            <td>\(\displaystyle arccos(cos^{-1})\)</td>
-            <td>\(\displaystyle sec=\frac{1}{cos}\)</td>
-            <td>\(\displaystyle arcsec(sec^{-1})\)</td>
+            <td>\(\displaystyle \cos=\frac{adjacent}{hypotenuse}\)</td>            
+            <td>\(\displaystyle \arccos(\cos^{-1})\)</td>
+            <td>\(\displaystyle \sec=\frac{1}{\cos}\)</td>
+            <td>\(\displaystyle \operatorname{arcsec}(\sec^{-1})\)</td>
         </tr>
         <tr>
-            <td>\(\displaystyle tan=\frac{opposit}{adjacent}\)</td>
-            <td>\(\displaystyle arctan(tan^{-1})\)</td>
-            <td>\(\displaystyle ctg=\frac{1}{tan}\)</td>
-            <td>\(\displaystyle arcctg(ctg^{-1})\)</td>
+            <td>\(\displaystyle \tan=\frac{opposite}{adjacent}\)</td>
+            <td>\(\displaystyle \arctan(\tan^{-1})\)</td>
+            <td>\(\displaystyle \cot=\frac{1}{\tan}\)</td>
+            <td>\(\displaystyle \operatorname{arccot}(\cot^{-1})\)</td>
         </tr>
     </tbody>
 </table>
