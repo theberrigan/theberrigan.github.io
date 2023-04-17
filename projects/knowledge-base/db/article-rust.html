@@ -94,3 +94,360 @@
 
     ------------------------------------------------------------------
 </pre>
+
+----------------------------------------------------------------------------------
+
+- rustc - компилятор однофайловых программ, для более сложных использовать cargo
+  cargo build - только собирает проект
+  cargo run   - собирает проект и запускает exe
+  cargo check - проверяет, компилируется ли проект
+- Result is an enumeration
+- Scalar типы: integers, floating-point numbers, booleans, and characters 
+  Compound типы состоят из нескольких частей, например, String
+- Если происходит перемолнение скалярного типа, то:
+  - В debug-режиме Rust запаникует
+  - В release-режиме произрйдёт wrapping (то же самое, что и в C++)
+  Можно сделать следующее:
+  - Чтобы явно разрешить wrapping, нужно использовать методы <scalar_type>::wrapping_*
+  - Чтобы вернуть None в случае переполнения, использовать методы <scalar_type>::checked_*
+  - Чтобы разрешить переполнение и вернуть тьюпл (новое_значениеб было_ли_переполнение), использовать методы <scalar_type>::overflowing_* 
+  - Чтобы сделать clamp, использовать методы <scalar_type>::saturating_* 
+- f64 - дефолтный float-тип
+- Expressions do not include ending semicolons. If you add a semicolon to the end of an expression, 
+  you turn it into a statement, and it will then not return a value.
+- Данные копируются быстро не потому что они маленького размера, а потому что хранятся в стеке
+- Когда переменная, содержащая память, выделенную в куче, выходит из скоупа, то вызывается метод drop трейта Drop.
+- Трейт Copy нужно реализовывать для простых типов В СТЕКЕ - такие типы НЕ move-аются и НЕ clone-руются, а тривиально копируются.
+  Поскольку трейт Copy – для стековых типов, то на этих типах нельзя реализовывать трейт Drop, предназначенный для кучевых типов.
+  Copy можно реализовывать на всех типах, которые не требуют выделения памяти в куче. Например, скаляры, тьюплы скаляров...
+- Мутабильные ссылки можно делать только на мутабильные переменные
+- При использовании Struct Update Syntax, исходная структура становится инвалидной, если хотя бы одно из полей, обновляемых в новой структуре, является owned
+- Tuple structs ~ namedtuple из питона
+- unit-like structs: struct AlwaysEqual; let subject = AlwaysEqual;
+- #[derive(Debug)]
+  println! берёт ссылку на значение; выводит в stdout
+  dbg! берёт владение над значением и возвращает владение (let x = dbg!(x)); если нужно сохранить владение, то передавать ссылку (dbg!(&x)); выводит в stderr
+- В match альтернатива default: break - это _ => ()
+- Modules объединяются в crate, crates - в package, packages - в workspace.
+  - Module - 
+    Modules объявляются только в crate root, в остальных файлах объявляются submodules.
+    Компилятор будет искать модули в той же директории, в которой лежит файл с объявлением этого модуля.
+    Код внутри модуля по умолчанию закрыт от его родительских модулей.
+    Для того, чтобы сделать модуль public, нужно использовать pub перед объявлением модуля или его частей.
+    Module можно use, используя crate:: (абсолютный), self:: (относительный), super:: (относительно родителя) или идентификатор модуля.
+    Модули только из library crate могут быть расшарены.
+    use импортирует модуль только в скоуп текущего модуля
+    Использовать pub use, чтобы сделать re-export модуля
+    ! Дерево модулей лучше всего объявлять в src/lib.rs, затем они могут быть использованы в binary crate, начиная с имени package,
+      таким образом binary crate использует эти модули так, будто они из абсолютно отдельного crate. (SEE: Chapter 12; The Rust API Guidelines)
+    !!! TODO: как импортировать модули из соседнего крейта? Как скомпилить и импортировать lib и dll библиотеки?
+  - Crate - набор modules; минимальная единица кода, которая рассматривается компилятором.
+    Crate бывает binary и library.
+    Crate root - главный файл crate'а, с которого компилятор начинает компиляцию
+  - Package - нобор crates;  
+    Package содержит файл Cargo.toml
+    Package = ((binary crate){0,} + (library crate){0,1}){1,}
+  У обычного проекта src/main.rs - crate root binary crate'а, (или src/lib.rs - crate root library crate'а), при этом имя crate взято у package-директории (в ней лежит Cargo.toml)
+  Если package содержит два файла src/main.rs и src/lib.rs, то он содержит два crate - binary и library, оба имеют имя package. 
+  Cargo передаёт crate root файлы rustc, чтобы собрать library или binary
+- Array и tuple по умолчанию хранятся в стеке, мета-структры коллекций (Vector, String, HashMap...) – тоже в стеке, а данные этих коллекций – в куче.
+- Можно использовать оператор + и format! для склеивания строк.
+- Когда происходит panic, руст начинает unwinding стека - идёт вверх по нему и зачищает данные. Это долго. Можно прописать panic = 'abort' в Cargo.toml
+- impl<T> Point<T> - реализация методов для всех типов T; impl Point<f32> - реализация методов только для типа f32
+- format!() используется для форматирования
+- Трейты:
+  - Несмотря на то, что определённый трейт может не упоминаться в определённом соурснике, его необходимо use, если в этом файле используются методы этого трейта
+  - У методов трейта возможна реализация по умолчанию, которую можно будет переопределить для конкретного типа
+  - Реализация трейта по умолчанию может вызывать другие методы трейта, даже если у них нет реализации по умолчанию
+  - fn notify(item: &impl Summary) - функция принимает любой тип, реализующий трейт Summary
+    fn notify<T: Summary>(item: &T) - второй вариант
+  - fn notify(item: &(impl Summary + Display)) - требует реализации двух трейтов
+    fn notify<T: Summary + Display>(item: &T) - второй вариант
+  - fn some_function<T, U>(t: &T, u: &U) -> i32 where T: Display + Clone, U: Clone + Debug
+  - fn returns_summarizable() -> impl Summary - возврат типа, реализацющего Summary
+  - impl<T: Display + PartialOrd> Pair<T> { fn cmp_display (&self) { ... } } - реализует cmp_display только для типов T, для которых реализованы Display и PartialOrd
+  - impl<T: Display> ToString for T - реализует трейт ToString для типов T, для которых реализован Display
+  - Все типы, для которых реализован Displayб имеют метод to_string
+- Lifetimes:
+  - Lifetime-параметр не меняет время жизни ссылки, а описывает связь lifetime'оф разных ссылок
+  - Lifetime возвращаемой ссылки должен совпадать с лайфтаймом одного из аргументов функции
+  - struct S<'a> { part: &'a str } - структура S не должна пережить её поле part
+  - Компилятор применяет следующую последовательность действий к блокам impl и fn, и если остаются input/output ссылки без лайфтайма, то выдаёт ошибку:
+    - Назначить каждому ссылочному параметру свой лайфтайм
+    - Если ссылочный параметр ровно один, а возвращаемый тип - тоже ссылка, то назначить лайфтайм этого параметра возвращаемому типу
+    - Если ссылочных параметров несколько, но среди них есть &self или &mut self, а возвращаемый тип - тоже ссылка, то назначить его лайфтайм возвращаемому типу
+  - Lifetime Annotations in Method Definitions: http://rust.local/book/ch10-03-lifetime-syntax.html#lifetime-annotations-in-method-definitions
+  - 'static - специальный лайфтайм, означает что переменная существует на протяжении всей работы программы
+  - Все &str на самом деле неявные &'static str
+- Тестирование:
+  - Каждый тест запускается в отдельном потоке. Если раст видит, что поток крешнулся, тест считается проваленным
+  - assert!(expr, msg, msg_args...), assert_eq!(expr, expected), assert_neq!(expr, expected); assert_* - показывают причину провала
+  - Порядок аргументов assert-макросов не имеет значения
+  - #[should_panic(expected = "...")] означает, что тест должен быть провален
+  - Вместо panic в тестах можно использовать Result<T, E>
+  - cargo test -- --test-threads=1 - последовательное выполнение тестов
+  - cargo test -- --show-output - показывать вывод программы (по умолчанию выключено)
+  - cargo test add - запустить только те тесты, которые имеют "add" в названии
+  - #[ignore] - игнорировать тест
+  - cargo test -- --ignored - выполнить только игнорируемы тесты
+  - cargo test -- --include-ignored - запустить в том числе игнорируемые тесты
+  - cargo test --test integration_test - выполнить только интеграционный тест integration_test
+  - unit-тесты находятся внутри соурсников и тестируют маленькие части кода
+    integration-тесты находятся в отдельных файлах и используют только внешний интерфейс нашей программы
+  - Интеграционные тесты находятся в /tests, каждый *.rs-файл в корне этой директории - это отдельный тест-крейт.
+    Можно создавать модули так: /tests/<mod_name>/mod.rs
+- Closures:
+  - Типы аргументов и возвращаемого значения не обязательны
+  - let some_closure = |num: u32| -> u32 { num };
+  - Если присвоить замыкание без обозначенных типов переменной, а затем вызвать это замыкание, то за аргументами и возвращаемым значением закрепятся типы
+  - Замыкание захватывает переменные тремя способами: мутабильная ссылка, иммутабильная ссылка, передача владения.
+    Какой именно тип захвата используется, зависит от того, как эти переменные используются внутри замыкания:
+    - FnOnce - трейт, реализуемый каждым замыканием. Если замыкание делает move из себя, то оно реализует ТОЛЬКО FnOnce
+    - FnMut - не делает move из себя, но мутатит захваченные переменные
+    - Fn - не делает move из себя, не мутирует захваченные переменные, а также не захватывает переменные
+  - Замыкание захватывает переменные в момент определения замыкания, поэтому если оно захватывает мутабильную ссылку, то нельзя создавать иммутабильные
+  - Можно использовать move перед ||, чтобы заставить замыкание принять захватываемые переменные во владение
+  - В тех местах, где в качестве аргумента используется замыкание, можно использовать имя функции, если внутренность этого замыкания не требует захвата переменных
+  - Если нужно вернуть замыкание из функции, то его нужно возвращать по ссылке или по указателю, как и любой unsized тип: Box<dyn Fn(i32) -> i32>
+- Итераторы:
+  - Чтобы создать итератор из коллекции, нужно вызвать метод iter(&)/iter_mut(&mut)/into_iter(move)
+  - Все итераторы реализуют трейт Iterator
+- Указатели:
+  - В отличие от ссылок, которые указывают на данные, указатели овнят данные
+  - String и Vec<T> можно считать смарт-указателями
+  - Умные указатели являются структурами, для которых реализованы трейты Deref и Drop
+  - Box<T> - zero-cost
+  - Типы с реализованным трейтом Deref могут интерпретироваться как обычная ссылка, можно применять оператор *
+  - Ссылка & похожа на тип Box<T> - они оба реализует Deref, но задача ссылки - указывать на какое-то значение, а задача Box<T> - овнить значение в куче
+  - Тип, реализующий Deref, должен вернуть обычную ссылку (&) на внутреннее значение, тогда при использовании этого типа Rust сделает так: *(my_value.deref())
+  - String реализует Deref, метод deref возвращает &str
+    &str - это как обычная ссылка, только содержит два поля (usize, usize) - адрес и длина в байтах
+  - Deref coercion - это приведение, которое Rust выполняет с аргументами функций и методов, которые реализуют Deref.
+    Будет вызываться метод deref рукурсивно до тех пор, пока тип не совпадёт с типом аргумента.
+  - Rc<T> - reference counting указатель. Используется в тех случаях, когда значением владеют несколько участков кода, и во время компиляции неизвестно, кто из них должен сделать drop.
+    ТОЛЬКО для single-threaded программ
+    Rc::clone повышает инкрементит кол-во ссылок, Rc реализует Drop, в котором декрисит кол-во ссылок
+    Rc<T> использует только immutable ссылки
+  - Interior mutability - паттерн, который позволяет изменять данные у immutable-переменных. Внутри использует unsafe-код.
+  - RefCell<T> - указатель с interior mutability. Имеет единственное владение, как и Box<T>.
+    Box<T> требует соблюдения ownership-правил во время компиляции (при несоблюдении - ошибка компиляции), а RefCell<T> - в рантайме (при несоблюдении - panic).
+    Статический анализатор не может проанализировать некоторые сценарии из-за их рантаймовой природы, поэтому отклоняет программы с такими сценариями - 
+    это называется косервативностью. Чтобы разрешить такие сценарии, нужно внедрить в программу код, проверяющий эти сценарии в рантайме.
+    RefCell<T> можно применить, когда ты уверен что программа соблюдает ownership-правила, но раст не может проверить это на этапе компиляции.
+    Переменные типа RefCell<T> имет методы borrow и borrow_mut, которые возвращают смарт-поинтеры Ref<T> и RefMut<T> соответственно. Оба реализуют Deref.
+    RefCell<T> ведёт подсчёт Ref<T> (immutable) ссылок.
+    Mutex<T> - multithread-версия RefCell<T>.
+- Многопоточность:
+  - handle = thread::spawn(move ||{}) - создать поток. Всегда нужно использовать move, чтобы отдать владение захватываемыми переменными новому потоку
+  - handle.join().unwrap() - ждать окончания выполнения потока
+  - Когда поток что-то пересылает через mpsc::channel() tx.send(), он передаёт владение
+  - Обмен сообщениями по каналу - это единственное владение. Shared memory - это множественное владение
+  - В Rust невозможно сделать mutex.lock/unlock неправильно
+  - Mutex<T> содержит умный указатель типа MutexGuard. Чтобы его получить, нужно сделать ptr = mutex.lock().unwrap()
+    Этот указатель реализует Drop, поэтому, выходя из скоупа, он автоматически делает unlock.
+  - Arc<T> (atomic rc) - это mutithread-версия Rc<T>
+    http://rust.local/std/sync/atomic/index.html
+  - Владение типами, реализующими Send, может быть передано из потока в поток.
+    Типы, целиком состоящие из реализующих Send, тоже являются Send.
+  - На типы, реализующие Sync, можно ссылаться из разных потоков.
+    Типы, целиком состоящие из реализующих Sync, тоже являются Sync.
+- OOP:
+  - Trait object указывает на инстанс типа, реализующего трейт и на таблицу методов (vtable)
+  - Trait object создаётся так: какой-нибудь указатель + dyn + <trait_name>. Например, Box<dyn Draw>
+  - Trait objects можно использовать вместо generics и конкретных типов
+  - Trait objects похожи на инстансы классов в других языках в том смысле, что они комбинируют данные и методы, но добавлять свои данные к ним нельзя 
+  - Для однородных коллекций лучше использовать дженерики вместо trait objects
+  - В отличие от дженериков, trait objects принимаются в качестве аргументов не по типу, а по наличию реализованных трейтов
+  - Для дженериков используется static dispatch (во время компиляции), а для trait objects - dynamic dispatch (в рантайме)
+  - ! Каждый трейт - это тип динамического размера
+- Unsafe:
+  - Unsafe позволяет:
+    - Разыменовывать сырые указатели
+    - Вызывать небезопасные функции/методы
+    - Получать доступ и модифицировать мутабильные статические переменные
+    - Реализовывать небезопасные трейты
+    - Получать доступ к полям union'ов
+  - Сырые указатели:
+    В unsafe режиме есть два вида сырых указателей: 
+    - *const T - immutable указатель
+    - *mut T - mutable указатель
+    Их можно использовать и в safe режиме, но нельзя разыменовывать, т.к. они не гарантируют что указываеют на валидные значения
+    Отличия от ссылок и умных указателей:
+    - Можно создавать сколько угодно mut/immut указателей на одно и то же значение.
+    - Не гарантируют, что указываеют на валидные значения
+    - Могут быть null
+    - Нет автоматической деаллокации
+  - Небезопасные функции и методы:
+    - Можно использовать unsafe перед fn, тогда всё тело функции будет unsafe блоком
+    - Вызывать такие функции можно только в unsafe блоках
+    - FFI:
+      - Для вызова Сишных функций, нужно обернуть определение функции в блок extern "C" { fn abs() -> i32; }
+        Вызов такой функции небезопасен, поэтому его нужно обернуть в блок unsafe.
+      - Чтобы сделать функцию, написанную на Rust, вызываемой из C, нужно перед fn добавить extern "C", а над ней - [no_mangle]
+        #[no_mangle] 
+        pub extern "C" fn call_from_c () { ... }
+  - Мутабильные статические переменные:
+    - Глобальные переменные называются статическими, они имеют 'static lifetime
+    - Отличие immut статических глобальных переменных от глобальных констант в том, что каждый статик всегда имеет один адрес
+    - Изменение mut static переменных - это unsafe
+  - unsafe можно использовать перед trait и impl, чтобы объявить или реализовать unsafe-трейт
+- Ассоциированный тип отличается от дженерик-типа тем, что трейты с дженериками могут быть реализованы для 
+  отдельного типа много раз, а при использовании ассоц. типа - только один раз
+- Дженерик-тип у трейта может иметь значение по умолчанию: trait Trait<T=Self> { ... } 
+- Для отдельного типа можно реализовать несколько трейтов с одинаковыми названиями методов.
+  var = Struct()
+  var.fly() или Struct::fly(&var) - вызов собственного метода fly структуры var
+  Trait1::fly(&var) - вызов метода fly реализованного трейта Trait1 
+  Trait2::fly(&var) - вызов метода fly реализованного трейта Trait2 
+  Struct::emit_sound() - вызов собственной ассоциированной (статической) функции структуры Struct
+  <Struct as Trait3>::emit_sound() - вызов ассоциированной (статической) функции структуры Struct реализованного трейта Trait3 
+  <Type as Trait>::function(receiver_if_method, next_arg, ...) - общее правило
+- Некоторые трейты могут быть зависимы от других методов:
+  trait Trait1 : Trait2 { ... } - Trait1 зависи от Trait2, при этом в методах Trait1 можно вызывать методы Trait2
+  Здесь тип, который хочет реализовать Trait1, предварительно должен реализовать Trait2
+- Newtype pattern - одноместная тьюпл-структура, которая выполняет роль тонкой обёртки вокруг какого-то типа.
+  Это бесплатная абстракция: во время компиляции обёртка растворяется.
+  Недостаток в том, что обёртка является новым типом и не имеет методов внутреннего типа.
+  Чтобы это обойти, для обёртки можно реализовать Deref.
+  Его можно использовать для инкапсуляции, и для того, чтобы обозначить что из себя представляет этот тип.
+- Type alias: type Kilometers = i32;
+  В отличие от newtype, alias не является новым типом, то есть Kilometers == i32
+- DST - dynamically sized type
+  Каждый DST нужно использовать с помощью ссылки или указателя, потому что их размер известен.
+  Компилятор автоматически реализует трейт Sized для всех типов, размер которых известен на момент компиляции.
+  http://rust.local/book/ch19-04-advanced-types.html#dynamically-sized-types-and-the-sized-trait
+  https://stackoverflow.com/a/30941589
+- Тип fn - это указатель на функцию. Не путать с трейтами Fn* - это замыкания.
+  fn(i32) -> i32 -- это тип функции, у которой один аргумент i32 и возвращает i32
+  Тип fn реализует все три трейта Fn, FnMut и FnOnce. Это означает, что функцию можно передать в любое место, где ожидается замыкание.
+
+
+----------------------------------------------------------------------------------
+
+Constants:
+- You aren’t allowed to use mut with constants
+- Constants can be declared in any scope
+- Constants may be set only to a constant expression (https://doc.rust-lang.org/reference/const_eval.html)
+
+- isize and usize are 64 bits if you’re on a 64-bit architecture and 32 bits if you’re on a 32-bit architecture
+- 57u8, 1_000
+- When you’re compiling in debug mode, Rust includes checks for integer overflow that cause your program to panic at runtime if this behavior occurs.
+  When you’re compiling in release mode with the --release flag, Rust does not include checks for integer overflow that cause panics. Instead, if overflow occurs, Rust performs two’s complement wrapping.
+  To explicitly handle the possibility of overflow, you can use these families of methods:
+  - Wrap in all modes with the wrapping_* methods, such as wrapping_add.
+  - Return the None value if there is overflow with the checked_* methods.
+  - Return the value and a boolean indicating whether there was overflow with the overflowing_* methods.
+  - Saturate at the value’s minimum or maximum values with the saturating_* methods.
+- char has 4 bytes width; char represents ordinal number of character in Unicode chars table 
+  let z : char = 'Z';
+- tuples: 
+  let tup: (i32, f64, u8) = (500, 6.4, 1);
+  let (x, y, z) = tup;
+  () - unit tuple, represent an empty value or an empty return type. 
+  Expressions implicitly return the unit value if they don’t return any other value.
+- Arrays are fixed-size stack-based same-type collection of elements. Can't grow or shrink.
+  let a = [3; 5]; same as let a = [3, 3, 3, 3, 3];
+  Vectors are the same but can grow or shrink.
+
+- let result = loop {
+    counter += 1;
+
+    if counter == 10 {
+      break counter * 2;
+    }
+  };
+- 'counting_up: loop {
+    break 'counting_up;
+  }
+- for number in (1..4).rev() {
+    println!("{number}!");
+  }
+- enum IpAddr {
+    V4(u8, u8, u8, u8),
+    V6(String),
+  }
+  let home = IpAddr::V4(127, 0, 0, 1);
+  let loopback = IpAddr::V6(String::from("::1"));
+
+- "if let" is a syntax sugar for a "match"
+- Ownership: each value in Rust has only one owner. When the owner goes out of scope, the value will be dropped.
+  the memory is automatically returned once the variable that owns it goes out of scope.
+- Rust will never automatically create “deep” copies of your data, use "clone" method yourself.
+- Copy-трейт используется только на чисто стековых переменных, а Drop - на хиповых, поэтому эти трейты несовместимы.
+- Slices:
+  let s = String::from("hello world");
+  let hello = &s[0..5];
+  let world = &s[6..11];
+
+- У heap-типов нужно определить метод drop, который вызывается, когда овнящая переменная выходит за скоуп и уничтожается.
+- У String мета-инфа хранится в стеке, а сами символы – в куче. 
+  Когда делаем s2 = s1, в s2 копируется мета-инфа, а символы остаются в куче без копирования. При этом
+  s1 становится невалидной. Напоминает shallow copy, но поскольку ещё происходит инвалидация s1, то это move.
+  В таких случаях, валидная переменная владеет этими данными. Это и есть Ownership.
+- Раст никогда не создаёт глубокие копии по своему желанию.
+  Если нужно, чтобы тип имел возможность глубоко копироваться, нужно реализовать метод clone
+- Типы, размер которых известен на момент compile time, хранятся в стеке, поэтому 
+  при var2 = var1, происходит их полное копирование (вызывается метод copy, который нужно реализовать на этом типе).
+- Copy и Drop трейты несовместимы
+- При передаче аргументов функции (без использования ссылок), работают те же правила copy/move.
+  При возврате значения тоже работают эти механизмы.
+- Ссылка позволяет передать переменную без передачи владения ею. Когда ссылочная переменная выходит за скоуп,
+  drop не вызывается.
+  Создание ссылки - это Borrowing.
+  В один момент может быть только одна mutable-ссылка или много immutable-ссылок.
+  В отличие от обычной переменной, скоуп ссылок заканчивается не в конце блока кода, а в том месте, где
+  эта ссылочная переменная последний раз использовалась.
+- &str - string slice; Строковые литералы - это string slice (имеют тип &str)
+  В сигнатруах функций, которые принимают строку только для чтения, лучше использовать тип &str вместо &String,
+  так функция сможет принимать не только строки, но и строковые литералы в качестве аргумента.
+- После применения Struct Update Syntax исходную структуру больше нельзя использовать, тк она moved
+- Tuple struct: struct Point(i32, i32, i32);
+- dbg! (stderr) в отличие от println! (stdout) забирает владение
+- В структурах можно методы называть теми же именами, что и свойства
+- Ассоциированные функции = методы с self + функции без self в пределах impl
+- null нет, использовать Option<T>
+
+- Crate - минимальный строительный блок программы
+  Crate бывают двух видов:
+  - Binary crate - exe-программа, имеет функцию main
+  - Library crate - используется как зависимость или компилируется в dll-библиотеку
+  Crate root - файл исходного кода, с которого начинается компиляция
+  Package - набор из одного или нескольких crates, содержит файл Cargo.toml
+  Cargo - это package, который содержит binary crate и library crate, от корого 
+  зависит binary crate или другой проект, использующий этот cargo в качестве зависимости.
+  Каждый package должен содержать как минимум один crate, при этом binary crates может быть 
+  сколько угодно, а library crate может быть не более одного.
+- Getting grapheme clusters from strings as with the Devanagari script is complex, so this functionality is not provided 
+  by the standard library. Crates are available on crates.io if this is the functionality you need.
+- Just like vectors, hash maps store their data on the heap.
+- For types that implement the Copy trait, like i32, the values are copied into the hash map. 
+  For owned values like String, the values will be moved and the hash map will be the owner of those values
+- Split your program into a main.rs and a lib.rs and move your program’s logic to lib.rs
+- Many programmers expect new functions to never fail
+- () default return value
+  Expressions implicitly return the unit value if they don’t return any other value.
+- Note that Rc<T> is only for use in single-threaded scenarios.
+- ! When we use trait objects, Rust must use dynamic dispatch.
+- The syntax _x still binds the value to the variable, whereas _ doesn’t bind at all.
+- ! If two threads are accessing the same mutable global variable, it can cause a data race.
+  In Rust, global variables are called static variables. 
+  Accessing an immutable static variable is safe.
+  Accessing and modifying mutable static variables is unsafe.
+- We can use unsafe to implement an unsafe trait. A trait is unsafe when at least one of its methods has some invariant that the compiler can’t verify.
+- Unions are primarily used to interface with unions in C code.
+  Accessing union fields is unsafe.
+- slice data structure just stores the starting position and the length of the slice (usize, usize)
+  Internally, the slice data structure stores the starting position and the length of the slice
+  !!! String slice range indices must occur at valid UTF-8 character boundaries.
+  &[T] - more general type of slices (&[u32])
+- !!! The golden rule of dynamically sized types is that we must always put values of dynamically sized types behind a pointer of some kind.
+  traits are different dynamically sized type.
+  to use traits as trait objects, we must put them behind a pointer, such as &dyn Trait or Box<dyn Trait>
+  default: generic types must have a known size at compile time
+  Rust implicitly adds a bound on Sized to every generic function
+- The "fn" type is called a function pointer.
+  Unlike closures, fn is a type rather than a trait, so we specify fn as the parameter type 
+  directly rather than declaring a generic type parameter with one of the Fn traits as a trait bound.
+  Function pointers implement all three of the closure traits (Fn, FnMut, and FnOnce), meaning you can 
+  always pass a function pointer as an argument for a function that expects a closure. It’s best to write 
+  functions using a generic type and one of the closure traits so your functions can accept either functions or closures.
