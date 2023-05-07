@@ -1204,3 +1204,58 @@
       стр. 32 - описание выполнения команды процессором
   </pre>
 </div>
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+Каждый процесс имеет как минимум один поток.
+
+Каждый поток содержит следующие компоненты:
+- Содержимое регистров процессора (всех?)
+- Два стека: один для user mode, другой - для kernel mode
+- Thread-local storage (TLS) - приватное хранилище потока, используется для подсистем и библиотек (runtime, DLL)
+- Уникальный ID - Thread ID (не пересекается с Process ID)
+
+Изменяемые регистры, стеки и TLS потока называются контекстом потока. Эта информация ещё называется CONTEXT-блоком.
+Содержимое структуры завист от архитектуры, на которой работает ОС. Ф-ция GetThreadContext возвращает эту структуру.
+32-битные приложения, запущенные на 64-битной винде имеют два user mode стека и две CONTEXT-блока.
+Переключение контекста задействует kernel scheduler, поэтому это дорогая операция.
+Для компенсации этого винда имеет два стредства: fibers и user-mode scheduling (UMS).
+- Fibers. Не рекомендуется в Windows Internals и в https://graphitemaster.github.io/fibers/
+- User-mode scheduling (UMS). Не поддерживаются, начиная с Windows 11
+
+User и kernel mode - это режимы процессора, а не ОС.
+В винде на процессоре x86 (x64) используются только два кольца из четырёх: ring 0 - для kernel mode и ring 3 - для user mode.
+
+Все потоки одного процесса шарят virtual address space (VAS).
+Каждый процесс помимо одного или нескольких потоков и VAS имеют security context и список открытых дескрипторов системных ресурсов.
+
+Each process’s security context is stored in an object called an access token. The process access token
+contains the security identification and credentials for the process. 
+
+The virtual address descriptors (VADs) are data structures that the memory manager uses to keep
+track of the virtual addresses the process is using.
+
+Каждый процесс содержит свою приватную часть виртуального пространства, но kernel space - один единственный.
+Каждая страница адресного пространства отмечена тегом - user или kernel.
+К страницам с kernel-тегом можно получить доступ только в kernel-режиме, а к user-тегнутым - в обоих.
+В read-only страницы нельзя писать ни в каком режиме, а из non-executable страниц нельзя запускать код (Data Execution Prevention [DEP]). 
+
+Любой сисколл требует перехода данного потока из user mode в kernel mode, а затем - обратно. Это делается за счёт аппаратного прерывания.
+ВАЖНО: переход из режима в режим никак не связан с thread scheduling, то есть не является переключением контекста.
+
+? OpenGL больше работает в kernel mode, а DirectX - в user mode?
+
+В ntdll.dll реализованы функции API ОС, но из пользовательского кода они вызываются не напрямую, а через набор subsystem DLLs, 
+которые конвертируют сискол в нативный, каким он и является в ntdll.dll.
+
+Винда:
+- SMP, а не ASMP
+- Поддерживает Multicore
+- Поддерживает Simultaneous multi-threaded (SMT) 
+  Добавлен в винду для поддержки Intel Hyperthreading - два логческих процессора на одно ядро.
+  CPU state у каждого ЛП свой, но исполнительный блок и кэш - расшарены.
+- Поддерживает Heterogeneous (ARM)
+- Поддерживает Non-uniform memory access (NUMA)
+
+
+TODO: ch 5, ch 7
