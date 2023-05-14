@@ -1257,5 +1257,470 @@ track of the virtual addresses the process is using.
 - Поддерживает Heterogeneous (ARM)
 - Поддерживает Non-uniform memory access (NUMA)
 
+На винде разметка виртуального пространства ПРИМЕРНО такая:
+|---| DLLs | code | data | heap |-->      <---| stack | kernel |
+0                                                     3G       4G
+(first page is never mapped to catch NULL dereferences)
 
-TODO: ch 5, ch 7
+----------------------------------------------------------------------------------------------------------------------------------------
+
+=======================================
+=== System-V x64 CALLING CONVENTION ===
+=======================================
+
+x64 C Calling Convention ("A. Bloomfield - x64 C Calling Convention & Asm"):
+- C-шная конвенция подходит для вызова из C, C++ и Rust.
+- В этой конвенции аргументы функции, резервные копии регистров и локальные переменные запихиваются в стек.
+Caller:
+  - Перед вызовом, caller должен сохранить в стеке caller-saved регистры: rdi, rsi, rdx, rcx, r8, r9; r10, r11.
+  - Первые 6 параметров caller должен положить в регистры в таком порядке: rdi, rsi, rdx, rcx, r8, r9.
+    Остальные параметры кладутся в стек в обратном порядке. (Обратный порядок используется для передачи переменного числа аргументов)
+  - Для вызова callee использовать инструкцию call. Она возьмёт адрес следующей за ней 
+    инструкции (адрес возврата), (на x86-32: создаст новый стек-фрейм) и положит этот адрес в стек.
+  - После возврата, caller должен сбросить со стека все параметры >6, если они были.
+  - Если callee возвращает какое-то значение, то caller должен взять его из RAX.
+  - Caller должен восстановить caller-saved регистры: r10, r11 и все регистры, в которые помещаются параметры.
+    Для этого он делает pop этих значений со стека.
+    ВАЖНО: все остальные регистры должны быть в том же состоянии, что и до вызова.
+Callee:
+  - Выделить место для локальных переменных с помощью sub rsp, N.
+  - Положить в стек callee-saved, которые будут использоваться в этой функции: RBX, RBP и R12-R15 (??? RSP, XMM6-XMM15).
+  - Callee выполняет свой код.
+  - Возвращаемое значение нужно положить в RAX, если оно есть.
+  - Восстановить callee-saved регистры, которые были сохранены в стеке (pop-нуть в обратном порядке).
+  - Освободить память в стеке, выделенную для локальных переменных, например, с помощью add rsp, N.
+  - Выполнить ret. Эта инструкция уберёт со стека адрес возврата.
+
+Примечание:
+Компилятор может сгенерировать дополнительный код для:
+- Пролога:
+  push rbp
+  mov rbp
+- Эпилога:
+  pop rbp
+Это создание стек-фрейма, является пережитком x86-32.
+Можно отключить в настройках компилятора.
+
+Стек во время выполнения полезной нагрузки внутри callee:
++--------------------+
+| RDI home (if arg1) | \
+| RSI home (if arg2) |  |
+| RDX home (if arg3) |  |
+| RCX home (if arg4) |  | caller-saved registers
+| R8  home (if arg5) |  |
+| R9  home (if arg6) |  |
+| R10 home           |  |
+| R11 home           | /
++--------------------+
+| arg9               |
+| arg8               |
+| arg7               |
++====================+ // call callee
+| return address     | // pushed by "call", will be popped off by "ret"
++--------------------+
+| loc1               | \
+| loc2               |  | local variables
+| loc3               | /
++--------------------+
+| RBX home           | \
+| RBP home           |  |
+| R12 home           |  | callee-saved registers
+| R13 home           |  |
+| R14 home           |  |
+| R15 home           | /
++--------------------+
+
+Регистры x64:
+- RAX - return value
+- RBX
+- RBP - stack base pointer
+- RSP - stack top pointer
+- RDI - arg1
+- RSI - arg2
+- RDX - arg3
+- RCX - arg4
+- R8  - arg5
+- R9  - arg6
+- R10
+- R11
+- R12
+- R13
+- R14
+- R15
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+========================================
+=== Microsoft x64 CALLING CONVENTION ===
+========================================
+
+Microsoft x64 default calling convention is __fastcall
+
+Most foreign code exposes a C ABI, and Rust uses the platform's C calling convention by default when calling foreign functions.
+
+Caller-saved registers are volatile or scratch registers. 
+Callee-saved registers are nonvolatile.
+
++-------+-----------------------------+-------
+| RAX   | calleR-saved                | return value
+| RCX   | calleR-saved                | int arg1
+| RDX   | calleR-saved                | int arg2
+| R8    | calleR-saved                | int arg3
+| R9    | calleR-saved                | int arg4
+| R10   | calleR-saved                | used in syscall/sysret instructions
+| R11   | calleR-saved                | used in syscall/sysret instructions
+| RBX   | calleE-saved                |
+| RBP   | calleE-saved                | stack base pointer; may be used as a frame pointer
+| RSP   | calleE-saved (not needed?)  | stack top pointer
+| RDI   | calleE-saved                |
+| RSI   | calleE-saved                |
+| R12   | calleE-saved                |
+| R13   | calleE-saved                |
+| R14   | calleE-saved                |
+| R15   | calleE-saved                |
++-------+-----------------------------+-------
+| st(0) | calleR-saved                | return value; TODO: must be saved (seems like NO)? Really used for return value?
+| st(1) | calleR-saved                | 
+| st(2) | calleR-saved                | 
+| st(3) | calleR-saved                | 
+| st(4) | calleR-saved                | 
+| st(5) | calleR-saved                |
+| st(6) | calleR-saved                |
+| st(7) | calleR-saved                |
++-------+-----------------------------+-------
+| MM0   | calleR-saved                | IMPORTANT:
+| MM1   | calleR-saved                | MM0-MM7 registers are aliased to lower 64 bits 
+| MM2   | calleR-saved                | of st(0)-st(7) respectively! 
+| MM3   | calleR-saved                | 
+| MM4   | calleR-saved                | 
+| MM5   | calleR-saved                |
+| MM6   | calleR-saved                |
+| MM7   | calleR-saved                |
++-------+-----------------------------+-------
+| XMM0  | calleR-saved                | fp arg1; return value
+| XMM1  | calleR-saved                | fp arg2
+| XMM2  | calleR-saved                | fp arg3
+| XMM3  | calleR-saved                | fp arg4
+| XMM4  | calleR-saved                |
+| XMM5  | calleR-saved                |
+| XMM6  | calleE-saved                |
+| XMM7  | calleE-saved                |
+| XMM8  | calleE-saved                |
+| XMM9  | calleE-saved                |
+| XMM10 | calleE-saved                |
+| XMM11 | calleE-saved                |
+| XMM12 | calleE-saved                |
+| XMM13 | calleE-saved                |
+| XMM14 | calleE-saved                |
+| XMM15 | calleE-saved                |
+|           AVX512VL BEGIN            |
+| XMM16 | calleR-saved                |
+| XMM17 | calleR-saved                |
+| XMM18 | calleR-saved                |
+| XMM19 | calleR-saved                |
+| XMM20 | calleR-saved                |
+| XMM21 | calleR-saved                |
+| XMM22 | calleR-saved                |
+| XMM23 | calleR-saved                |
+| XMM24 | calleR-saved                |
+| XMM25 | calleR-saved                |
+| XMM26 | calleR-saved                |
+| XMM27 | calleR-saved                |
+| XMM28 | calleR-saved                |
+| XMM29 | calleR-saved                |
+| XMM30 | calleR-saved                |
+| XMM31 | calleR-saved                |
++-------+-----------------------------+-------
+| YMM0  | calleR-saved                | __vectorcall arg1; return value; TODO: Really used for return value?
+| YMM1  | calleR-saved                | __vectorcall arg2
+| YMM2  | calleR-saved                | __vectorcall arg3
+| YMM3  | calleR-saved                | __vectorcall arg4
+| YMM4  | calleR-saved                | __vectorcall arg5; TODO: are YMM4 and YMM5 really used for args (MSDN vs AFog conflict)?
+| YMM5  | calleR-saved                | __vectorcall arg6
+| YMM6  | calleR-saved (except XMM6)  |
+| YMM7  | calleR-saved (except XMM7)  |
+| YMM8  | calleR-saved (except XMM8)  |
+| YMM9  | calleR-saved (except XMM9)  |
+| YMM10 | calleR-saved (except XMM10) |
+| YMM11 | calleR-saved (except XMM11) |
+| YMM12 | calleR-saved (except XMM12) |
+| YMM13 | calleR-saved (except XMM13) |
+| YMM14 | calleR-saved (except XMM14) |
+| YMM15 | calleR-saved (except XMM15) |
+|           AVX512VL BEGIN            |
+| YMM16 | calleR-saved                |
+| YMM17 | calleR-saved                |
+| YMM18 | calleR-saved                |
+| YMM19 | calleR-saved                |
+| YMM20 | calleR-saved                |
+| YMM21 | calleR-saved                |
+| YMM22 | calleR-saved                |
+| YMM23 | calleR-saved                |
+| YMM24 | calleR-saved                |
+| YMM25 | calleR-saved                |
+| YMM26 | calleR-saved                |
+| YMM27 | calleR-saved                |
+| YMM28 | calleR-saved                |
+| YMM29 | calleR-saved                |
+| YMM30 | calleR-saved                |
+| YMM31 | calleR-saved                |
++-------+-----------------------------+-------
+| ZMM0  | calleR-saved                | return value; TODO: are ZMM0-ZMM3 (or ZMM0-ZMM5) used for args (__vectorcall)? Really ZMM0 used for return value?
+| ZMM1  | calleR-saved                |
+| ZMM2  | calleR-saved                |
+| ZMM3  | calleR-saved                |
+| ZMM4  | calleR-saved                |
+| ZMM5  | calleR-saved                |
+| ZMM6  | calleR-saved (except XMM6)  |
+| ZMM7  | calleR-saved (except XMM7)  |
+| ZMM8  | calleR-saved (except XMM8)  |
+| ZMM9  | calleR-saved (except XMM9)  |
+| ZMM10 | calleR-saved (except XMM10) |
+| ZMM11 | calleR-saved (except XMM11) |
+| ZMM12 | calleR-saved (except XMM12) |
+| ZMM13 | calleR-saved (except XMM13) |
+| ZMM14 | calleR-saved (except XMM14) |
+| ZMM15 | calleR-saved (except XMM15) |
+|           AVX512VL BEGIN            |
+| ZMM16 | calleR-saved                |
+| ZMM17 | calleR-saved                |
+| ZMM18 | calleR-saved                |
+| ZMM19 | calleR-saved                |
+| ZMM20 | calleR-saved                |
+| ZMM21 | calleR-saved                |
+| ZMM22 | calleR-saved                |
+| ZMM23 | calleR-saved                |
+| ZMM24 | calleR-saved                |
+| ZMM25 | calleR-saved                |
+| ZMM26 | calleR-saved                |
+| ZMM27 | calleR-saved                |
+| ZMM28 | calleR-saved                |
+| ZMM29 | calleR-saved                |
+| ZMM30 | calleR-saved                |
+| ZMM31 | calleR-saved                |
++-------+-----------------------------+-------
+
+                                               +---------------+
+                                               |   XMM (128)   |
+                               +---------------+---------------+
+                               |           YMM (256)           |
++------------------------------+-------------------------------+
+|                          ZMM (512)                           |
++--------------------------------------------------------------+
+
+MMX - __m64
+XMM - __m128[d|i]
+YMM - __m256[d|i]
+ZMM - __m512[d|i]
+
+p.10
+
+TODO:
+- MSDN: When AMX support is present, the TMM tile registers are volatile (calleR-saved). 
+- BOOST: MXCSR
+- BOOST: x87 CW
+- GPR, SIMD, x87 (st(N)), MMX (MMN), RFLAGS, MXCSR, Segment registers, DR0-DR7, AMX
+- Как передаются параметры, помещающиеся в arg-регистры, и не помещающиеся?
+  Как XMM, YMM и ZMM регистры сохраняются в caller'е и в callee?
+  Какой порядок всего в стеке?
+
+--+-------------
+A | stack params >4 for B
+  | shadow space/caller-saved regs home (const 32 bytes) (TODO: why 32? What about 16-bytes XMM regs?)
+  | return address
+--+-------------
+B | locals (if used)
+  | callee-saved regs home (TODO: order of locals and home)
+  | if used, frame pointer points here (RBP)
+--+-------------
+
+Data sizes:
++-------------------------------+----+
+| bool                          |  1 |
+| char                          |  1 |
+| wchar_t                       |  2 |
+| short int                     |  2 |
+| int                           |  4 |
+| long int                      |  4 |
+| int64_t                       |  8 |
+| enum (typical)                |  4 |
+| float                         |  4 |
+| double                        |  8 |
+| long double                   |  8 |
+| __m64                         |  - |
+| __m128                        | 16 |
+| __m256                        | 32 |
+| __m512                        | 64 |
+| pointer                       |  8 |
+| far pointer                   |  - |
+| function pointer              |  8 |
+| data member pointer (min)     |  4 |
+| data member pointer (max)     | 12 |
+| member function pointer (min) |  8 |
+| member function pointer (max) | 24 |
++-------------------------------+----+
+
+Alignment of static data:
++---------------+-----+
+| 1 byte char   |   1 |
+| 2 byte int    |   4 |
+| 4 byte int    |   4 |
+| 8 byte int    |   8 |
+| float         |   4 |
+| double        |   8 |
+| __m64         |   8 |
+| __m128        |  16 |
+| __m256        |  32 |
+| __m512        |  64 |
+| pointer       |   8 |
+| big array     | 4-8 |
+| big structure |   4 |
++---------------+-----+
+
+Alignment of structure members:
++---------------+-----+
+| 1 byte char   |   1 |
+| 2 byte int    |   2 |
+| 4 byte int    |   4 |
+| 8 byte int    |   8 |
+| float         |   4 |
+| double        |   8 |
+| pointer       |   8 |
++---------------+-----+
+
+Methods for passing structure, class and union objects:
++----------------------------------------------------------------+----+
+| max number of integer registers used for transfer of an object |  1 |
+| max number of XMM registers used for transfer of an object     |  0 |
+| simple structure, class or union                               | IZ |
+| size not a power of 2                                          | PI |
+| contains mixed int and f.p.                                    | IZ |
+| contains long double                                           | IZ |
+| has member function                                            | IZ |
+| has constructor                                                | IZ |
+| has copy constructor                                           | PI |
+| has destructor                                                 | IZ |
+| has virtual                                                    | PI |
+| has inheritance                                                | IZ |
+| has no data                                                    | IZ |
++----------------------------------------------------------------+----+
+PI: Temporary copy referenced by pointer in register. If no vacant register, use PS.
+PS: Temporary copy referenced by pointer on stack.
+IZ: Entire object transferred in integer register, zero-extended to register size. Use PI if too big. Use PS if no vacant register.
+
+Methods for returning structure, class and union objects (except intrinsic vectors __m64, __m128, __m256, __m512):
++-------------------------------------------------+---+
+| max number of integer registers used for return | 1 |
+| max number of ZMM registers used for return     | 0 |
+| max number of f.p. registers used for return    | 0 |
+| simple structure, class or union                | I |
+| bigger than max registers                       | P |
+| size not a power of 2                           | P |
+| contains only f.p.                              | I |
+| contains mixed int and f.p.                     | I |
+| contains mixed float and double                 | P |
+| contains only one long double                   | I |
+| contains only one SIMD type                     | P |
+| contains mixed long double and other            | P |
+| has member function                             | I |
+| has inheritance                                 | P |
+| has constructor                                 | P |
+| has copy constructor                            | P |
+| has destructor                                  | P |
+| has virtual                                     | P |
+| has no data                                     | 0 |
++-------------------------------------------------+---+
+I Returned in integer registers.
+P Pointer to temporary memory space passed to function. Pointer may be passed in register if
+  fastcall or 64-bit mode, otherwise on stack. Same pointer is returned in AX, EAX or RAX.
+0 Nothing passed or returned.
+
+Methods for passing and returning SIMD data types:
++--------------------------------------------+------------------------+
+| __m64 parameters transferred in registers  | 4 g. p. registers      |
+| alignment of __m64 parameters on stack     | 8                      |
+| __m64 returned in register                 | rax                    |
+| __m128 parameters transferred in registers | transferred by pointer |
+| alignment of __m128 parameters on stack    | 16                     |
+| __m128 returned in register                | xmm0                   |
+| __m256 parameters transferred in registers | transferred by pointer |
+| alignment of __m256 parameters on stack    | 32                     |
+| __m256 returned in register                | ymm0                   |
+| __m512 parameters transferred in registers | transferred by pointer |
+| alignment of __m512 parameters on stack    | 64                     |
+| __m512 returned in register                | zmm0                   |
++--------------------------------------------+------------------------+
+
+
+- 64-битные системы выравнивают стек по 16-байтовой границе.
+  Stack word size равен 16, но stack pointer должен быть выравнен по 16-байтовой границе ПЕРЕД каждым "call".
+  После входа в новую процедуру (после выполнения "call") RSP % 16 == 8 - ВСЕГДА!
+  Это подходит для сохранения в стеке значений 16-байтовых регистров XMM, требующих 16-байтового выравнивания.
+- Регистры XMM_ относятся к SSE, YMM_ и ZMM_ - к AVX и AVX-512 соотвественно.
+  Регистры ST(0)-ST(7) относятся к x87 floating point подмножеству.
+  Регистры MM0-MM7 относятся к MMX и являются младшими 64 битами ST(0)-ST(7) соответственно. 
+- The compiler will ALSO insert unused bytes at the end of the structure so that the total size of
+  the structure is a multiple of the alignment of the element that requires the highest alignment.
+- The stack pointer must be aligned by the stack word (at least) size at all times. The 64 bit systems keep the 
+  stack aligned by 16. The stack word size is 8 bytes, but the stack must be aligned by 16 before any "call" instruction.
+  Consequently, the value of the stack pointer is always 8 modulo 16 at the entry of a procedure. A procedure must subtract an
+  odd multiple of 8 from the stack pointer before any call instruction. A procedure can rely on these rules when storing 
+  XMM data that require 16-byte alignment. This applies to all 64 bit systems (Windows, Linux, BSD).
+- All systems use registers for return values if the returned object fits into the registers that are assigned for this purpose.
+- In 32-bit and 64-bit mode, it is not allowed to change any segment register, not even temporarily. 
+  CS, DS, ES and SS all point to the flat segment group.
+- The floating point registers ST(0)-ST(7) need not be saved. The register stack must be emptied before any call or return, 
+  except for registers used for return values. The 64-bit Microsoft compiler does not use ST(0)-ST(7)
+- The use of MMX registers and the __m64 type should be avoided if possible. The 64-bit Microsoft compiler does not use MM0-MM7.
+- The floating point control word and bit 6-15 of the MXCSR register must be saved and
+  restored before any call or return by any procedure that needs to modify them, except for
+  procedures that have the purpose of changing these.
+- The conclusion is that it is safe to use floating point registers and MMX registers in 64-bit
+  Windows, except in kernel mode drivers.
+- YMM (__m256, __m256d, __m256i). These should preferably be aligned by 32, but some systems allow alignment by 16.
+  Apparently, Windows allows alignment by 16. In both Windows and Linux, these registers are aligned by 32 when
+  transferred on the stack as function parameters.
+- In 16 bit and 32 bit mode, we have the same calling conventions in different operating systems, but some differences between 
+  different brands of compilers, especially for the __fastcall convention and for member functions. In 64 bit mode, the different 
+  operating systems use different calling conventions, but I would not expect differences between different compilers because 
+  all details are defined in the official ABI's.
+- Parameter types that do not fit into the registers are stored on the stack. In general, all integer types, bool, enum and 
+  pointers can be transferred in the general purpose registers. References are treated as identical to pointers in all respects. 
+  Arrays are transferred as pointers. Float and double types are transferred in XMM registers in 64 bit mode, otherwise on the stack.
+  Long doubles, structures, classes and unions may be transferred on the stack or through pointers if they do not fit into registers. 
+- Objects that do not fit into the return registers are returned to a storage space supplied by the caller. The caller
+  must supply a return pointer as an implicit parameter to the called function if this is necessary. The same pointer is 
+  returned in the return register. The rules for deciding whether an object is returned in registers or through a return 
+  pointer are explained below for each platform. A member function that returns an object can have two implicit parameters, 
+  a return pointer and a this pointer. In Microsoft compilers and 64 bit Windows, the this pointer is the first parameter, 
+  the return pointer is the second parameter, and all explicit parameters come thereafter.
+- 64 bit Windows has more rules. The first parameter goes into rcx or xmm0; the second parameter goes into rdx or xmm1, etc. 
+  This means that if the first parameter is a float in xmm0 and the second parameter is an integer, then the latter goes into 
+  rdx, while rcx is unused. The maximum number of parameters that can be transferred in registers is four in total, not four 
+  integers plus four floats. The caller must reserve 32 bytes of stack space as "shadow space" for register parameters, even 
+  if there are no parameters. The 32 bytes of shadow space come immediately after the return address. Any parameters on the 
+  stack come after the 32 empty bytes. The intended purpose of the shadow space is as a "home address" for the register 
+  parameters which the called function can use for storing the register parameters in case the registers are used for 
+  something else. The caller does not need to put anything into the shadow space. Since the shadow space is owned by the called 
+  function, it is safe to use these 32 bytes of shadow space for any purpose by the called function. Even a function without 
+  parameters can rely on having 32 bytes of storage space after the return address.
+  The shadow space is often used by compilers for storing the register parameters. I haven't seen a compiler using the shadow space 
+  for anything else, although it would be perfectly legal to do so.
+  If the type of a parameter is not specified explicitly because the function has no prototype or because it has varargs (...), 
+  and a parameter of type double is passed in an XMM register (float is converted to double), then the corresponding integer 
+  register must contain the same value (not converted to int). This does not apply to parameters passed on the stack.
+- The 64bit Windows ABI requires that objects passed by pointers be aligned by 16
+- Return values of type __m64 are transferred in RAX in 64-bit Windows
+- In 64-bit Windows, parameters of type __m128 are passed by a pointer to an aligned copy.
+  Any additional parameters of type __m128 are transferred on the stack aligned by 16.
+  If there are more than eight parameters of type __m128 then the stack space is padded, if necessary, to align the parameters. 
+  Return values of type __m128 are transferred in XMM0 on all platforms.
+- __m256 and __m512 parameters are transferred analogously to __m128 parameters, except for the fact that in some systems they
+  are aligned by 16, in other systems by 32/64, when transferred on the stack.
+- The __vectorcall convention in Windows allows up to six vector registers to be used for function parameters (ZMM0 - ZMM5), and up 
+  to four vector registers to be used for function return. A shadow space of 8 bytes is allocated for each vector register parameter.
+  See https://docs.microsoft.com/en-us/cpp/cpp/vectorcall for details.
+
+----
+
+- Every function that allocates stack space, calls other functions, saves nonvolatile registers, or uses exception handling must have a prolog and epilog.
