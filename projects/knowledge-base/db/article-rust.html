@@ -364,7 +364,38 @@
 
 ----------------------------------------------------------------------------------
 
-- std::task используется в std::future
+- std::future построен на std::task
+- ! Boost.context сохраняет только non-volatile (callee-saved) регистры (https://lists.boost.org/Archives/boost/2013/07/205158.php)
+- fibers-rs
+- tokio
+- async-std
+
+fiber_context (no scheduler) ->
+  -> stackful coroutines
+  -> cooperative multitasking (user-land/green threads) (with scheduler)
+
+- std::task - лёгкий юзерский поток, на который повешена одна задача. Самая фундаментальная штука.
+  Много тасков могут быть заскедулены на один OS-поток.
+- std::future - представляет лёгкое асинхронное вычисление, которое в конечном итоге производит результат.
+- Executor - предоставляет возможность создавать таски из ()-производящих Futures.
+  Executor сделает pin Future и будет poll его до тех пор, пока не будет выполнено вычисление внутри task, который создаётся этим Future.
+  Executor schedules task кооперативным путём. 
+  Executor решает сколько OS-потоков использовать для каждого таска, а также сколько тасков спавнить для одного OS-потока.
+  Executor is the part of the runtime which polls a Future.
+  Некоторые executor'ы позволяют task'ам создавать новые Futures.
+  Executor'ы не входят в std!
+- To perform this cooperative scheduling we use a technique sometimes referred to as a "trampoline". 
+  When a task would otherwise need to block waiting for some event, instead it saves an object that 
+  allows it to get scheduled again later and returns to the executor running it, which can then run 
+  another task. Subsequent wakeups place the task back on the executors queue of ready tasks, much 
+  like a thread scheduler in an operating system.
+- Attempting to complete a task (or async value within it) is called polling, and always yields a Poll value back.
+- Во время использования обычных потоков (ОС), "рантаймом" является ОС.
+  При использовании Futures, рантайм должен быть реализован пользователем.
+- При использовании ОС-потоков выделяется слишком большой стек, используется слишком много сисколов,
+  переключение контекста может быть медленнее ожидаемого из-за большого кол-ва менеджмента, которым
+  занимается ОС.
+- В Rust параллелизм достигается за счёт либо Thread-ов, либо методов, построенных не на Thread-ах.
 
 ----------------------------------------------------------------------------------
 

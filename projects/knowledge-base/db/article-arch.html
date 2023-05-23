@@ -1361,6 +1361,8 @@ Most foreign code exposes a C ABI, and Rust uses the platform's C calling conven
 Caller-saved registers are volatile or scratch registers. 
 Callee-saved registers are nonvolatile.
 
+See also: https://www.boost.org/doc/libs/1_82_0/libs/context/doc/html/context/rationale/x86_and_floating_point_env.html
+
 +-------+-----------------------------+-------
 | RAX   | calleR-saved                | return value
 | RCX   | calleR-saved                | int arg1
@@ -1523,6 +1525,7 @@ TODO:
 - Как передаются параметры, помещающиеся в arg-регистры, и не помещающиеся?
   Как XMM, YMM и ZMM регистры сохраняются в caller'е и в callee?
   Какой порядок всего в стеке?
+- Когда появились регистры XMM, YMM, ZMM и как проверить их наличие и количество?
 
 --+-------------
 A | stack params >4 for B
@@ -1724,3 +1727,4 @@ Methods for passing and returning SIMD data types:
 ----
 
 - Every function that allocates stack space, calls other functions, saves nonvolatile registers, or uses exception handling must have a prolog and epilog.
+
