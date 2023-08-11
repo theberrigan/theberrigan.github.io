@@ -69,6 +69,33 @@ glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);  // устано
 </ol>
 <img src="images/opengl/coords_pipeline.png" class="figure-img img-fluid">
 
+OpenGL:
+- Можно использовать layout (location = N) в шейдере или glGetAttribLocation() из кода C++
+- Uniform-переменные остаются в шейдерной программе, даже когда она отбиндена
+- Чтобы найти локацию uniform-ы, программу не обязательно биндить. 
+  Но чтобы обновить значение этой uniform-ы программу необходимо забиндить (glUseProgram()).
+- Во фрагментном шейдере автоматически интерполируются все in-переменные
+- Каждая вершина должна иметь соответсвующую координату текстуры
+- У текстур (0,0) в нижнем левом углу 
+- Для текстур xyz == str
+- Нормализация вектора - приведение вектора к единичному вектору (v / |v|)
+- Скалярное произведение векторов: v * k = |v| * |k| * cosA - число, позволяет определить ортогональность и параллельность векторов или вычислить угол между векторами
+  Векторное произведение векторов: v × K = - вектор, перпендикулярный к v и k
+- cos - x; sin - y
+- Scale -> Rotate -> Translate (TrasnsformMat = TranslateMat * RotateMat * ScaleMat)  
+- Local/Object Space (HC) -> *ModelMat -> 
+  Global/World Space (HC) -> *ViewMat -> 
+  View/Eye/Camera Space (HC) (x, y and z are alligned to the display axes) -> *ProjectionMat -> 
+  Clip Space (frustum) (HC/CC) -> Frustum Culling/Clipping -> Auto Perspective Division (if perspective projection) (x,y,z,w / w) ->
+  Normalized Device Space (frustum) (NDC vec3) -> Viewport Transform -> 
+  Screen/Window Space (Fragmet Coordinates)
+  ** Можно пропустить Global Space и перевести Local Space сразу во View Space объединив матрицы ModelMat + ViewMat = ModelViewMat 
+- V_clip = M_projection * M_view * M_model * V_local
+- Left-handed coordinates: ось x направлена вправо, y - вверх, z - от зрителя (т.е. вперёд)
+  Right-handed coordinates: ось x направлена вправо, y - вверх, z - на зрителя (т.е. назад)
+  До умножения на Projection-матрицу в OpenGL координаты right-handed, а после умножения - left-handed
+- depth buffer == z-buffer (depth testing)
+
 Для того, чтобы определить камеру, нужно:
 1. Определить её позицию в сцене, то есть world coordinates.
    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
