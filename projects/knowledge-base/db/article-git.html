@@ -4,37 +4,65 @@
 git fetch origin
 git reset --hard origin/master
 
+--------
+
 Обновить с сервера информацию о последних коммитах, ветках и изменениях:
 git fetch
+
+--------
 
 забирает последние изменения с сервера:
 git checkout
 
+--------
+
 Добавить ремоут
 git remote add origin https://github.com/user/repo.git
+
+--------
 
 Чтобы изменить удалённый сервер
 git remote set-url origin git@github.com:user/repo.git
 
+--------
+
 Просмотреть локальные незапушенные коммиты
 git log --branches --not --remotes
+
+--------
 
 !!! Не использовать HTTP, использовать SSH
 - https://github.com/WEMP/project-slideshow.git 
 + git@github.com:WEMP/project-slideshow.git
+
+--------
 
 Просмотреть текущий ремоут
 git config --get remote.origin.url
 git remote show origin
 git remote -v
 
+--------
+
 Переключить локальную ветку на одну из удалённых
 git checkout --track origin/<some_remote_branch>
+
+--------
 
 Автопуш с датой и временем в сообщении коммита:
 git add -A
 git commit -m "$( date +"%d.%m.%Y %H:%M:%S" )"
 git push
 
+--------
+
 Подтянуть все зависимости:
 git submodule update --init --recursive
+
+--------
+
+Удалить файл из трекинга, если он уже тречится:
+git rm --cached <file>
+
+Рекурсивно удалить папку с файлами из трекинга, если она уже тречится:
+git rm -r --cached <folder>
