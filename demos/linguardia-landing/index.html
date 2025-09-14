@@ -3,67 +3,70 @@
 <head>
     <meta charset="utf-8">
     <title>Linguardia </title>
-    <base href="/demos/linguardia-landing/">    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"/>
-    <meta name="description" content="Linguardia – we provide high quality translations worldwide"/>
-    <meta name="keywords" content="Linguardia, translations, i18n, languages"/>
-    <meta name="msapplication-tap-highlight" content="no"/>
+    <base href="/demos/linguardia-landing/">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Linguardia – we provide high quality translations worldwide" />
+    <meta name="keywords" content="Linguardia, translations, i18n, languages" />
+    <meta name="msapplication-tap-highlight" content="no" />
     <link rel="icon" type="image/x-icon" href="favicon.ico?2">
     <script type="text/javascript">
-        window.initialQueryParams = window.location.search;
+    window.initialQueryParams = window.location.search;
     </script>
     <style>
-        .app-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            color: #3d3e67;
-            background-color: #fff7f0;
-            z-index: 2147483647;  /* max z-index */
-            -webkit-user-select: none;
-               -moz-user-select: none;
-                -ms-user-select: none;
-                    user-select: none;
-            display: -ms-flexbox;
-            display: flex;
-            -ms-flex-flow: row nowrap;
-            flex-flow: row nowrap;
-            -ms-flex-pack: center;
-            justify-content: center;
-            -ms-flex-align: center;
-            align-items: center;
-            opacity: 1;
-        }
+    .app-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        color: #3d3e67;
+        background-color: #fff7f0;
+        z-index: 2147483647;
+        /* max z-index */
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-flow: row nowrap;
+        flex-flow: row nowrap;
+        -ms-flex-pack: center;
+        justify-content: center;
+        -ms-flex-align: center;
+        align-items: center;
+        opacity: 1;
+    }
 
-        .app-screen_fade-out {
-            opacity: 0;
-        }
+    .app-screen_fade-out {
+        opacity: 0;
+    }
 
-        .app-screen,
-        .app-screen_fade-out {
-            -webkit-transition: opacity 0.15s ease-out;
-                 -o-transition: opacity 0.15s ease-out;
-                    transition: opacity 0.15s ease-out;
-        }
+    .app-screen,
+    .app-screen_fade-out {
+        -webkit-transition: opacity 0.15s ease-out;
+        -o-transition: opacity 0.15s ease-out;
+        transition: opacity 0.15s ease-out;
+    }
 
+    .app-screen__loader {
+        width: 260px;
+    }
+
+    @media (min-width: 768px) {
         .app-screen__loader {
-            width: 260px;
+            width: 400px;
         }
+    }
 
-        @media (min-width: 768px) {
-            .app-screen__loader {
-                width: 400px;
-            }
+    @media (min-width: 1280px) {
+        .app-screen__loader {
+            width: 700px;
         }
-
-        @media (min-width: 1280px) {
-            .app-screen__loader {
-                width: 700px;
-            }
-        }
+    }
     </style>
-<link rel="stylesheet" href="styles.e2f4623012d1b7aa6563.css" crossorigin="anonymous" integrity="sha384-l0o4CLvwy3RH1oEK6e9/E6L17rbSD5jz/2gjAAn3UjrrO6wnU+NwMNkU4xzp/uCe"></head>
+    <link rel="stylesheet" href="styles.e2f4623012d1b7aa6563.css" crossorigin="anonymous" integrity="sha384-l0o4CLvwy3RH1oEK6e9/E6L17rbSD5jz/2gjAAn3UjrrO6wnU+NwMNkU4xzp/uCe">
+</head>
 <body>
     <app-root></app-root>
     <div class="app-screen">
@@ -73,5 +76,9 @@
             </svg>
         </div>
     </div>
-<script src="runtime.dfe7c79e0c27269d72b5.js" crossorigin="anonymous" defer integrity="sha384-6cc7i/rcOci3G2xlzyK2DejMQD5jP0sDqKvuxh39rz1mV9uxyYs1kB8S2HQGAO/w"></script><script src="polyfills-es5.f9cb71421a2a5e07c905.js" crossorigin="anonymous" nomodule defer integrity="sha384-8nAGUYa4DVHH3eNttHmLuWd0EwKmuK+zDB9he4JE9T5AQhVGt5lCBFpiHxxV/lPA"></script><script src="polyfills.1081876032eb19c461f4.js" crossorigin="anonymous" defer integrity="sha384-W3zdCKBb8fMBq8mAVh684g9u9dNJJtXduUf8PLhOtWu8txscZ8fLouJWVP7Ihize"></script><script src="main.70e7867f3172039be1b7.js" crossorigin="anonymous" defer integrity="sha384-aE4FSAMiqbR4OaCYFQQ2nYclZb6a7M0MSnj3jqgxQFlaV3NN4JKsUDpGTBe7RcDu"></script></body>
+    <script src="runtime.dfe7c79e0c27269d72b5.js" crossorigin="anonymous" defer integrity="sha384-6cc7i/rcOci3G2xlzyK2DejMQD5jP0sDqKvuxh39rz1mV9uxyYs1kB8S2HQGAO/w"></script>
+    <script src="polyfills-es5.f9cb71421a2a5e07c905.js" crossorigin="anonymous" nomodule defer integrity="sha384-8nAGUYa4DVHH3eNttHmLuWd0EwKmuK+zDB9he4JE9T5AQhVGt5lCBFpiHxxV/lPA"></script>
+    <script src="polyfills.1081876032eb19c461f4.js" crossorigin="anonymous" defer integrity="sha384-W3zdCKBb8fMBq8mAVh684g9u9dNJJtXduUf8PLhOtWu8txscZ8fLouJWVP7Ihize"></script>
+    <script src="main.70e7867f3172039be1b7.js" crossorigin="anonymous" defer integrity="sha384-aE4FSAMiqbR4OaCYFQQ2nYclZb6a7M0MSnj3jqgxQFlaV3NN4JKsUDpGTBe7RcDu"></script>
+</body>
 </html>
