@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2600" height="2600" viewBox="0 0 2600 2600">
+  <defs>
+    <radialGradient id="a" cx="1300" cy="1300" r="1070" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#944086"/>
+      <stop offset="1" stop-color="#9f4490"/>
+    </radialGradient>
+    <radialGradient id="b" cx="1300" cy="1300" r="840" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a63b51"/>
+      <stop offset="1" stop-color="#bc435c"/>
+    </radialGradient>
+    <radialGradient id="c" cx="1300" cy="1300" r="610" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b83d2d"/>
+      <stop offset="1" stop-color="#da4836"/>
+    </radialGradient>
+    <radialGradient id="d" cx="1300" cy="1300" r="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e06120"/>
+      <stop offset="1" stop-color="#f06822"/>
+    </radialGradient>
+  </defs>
+  <rect width="2600" height="2600" fill="#6852a2"/>
+  <circle cx="1300" cy="1300" r="1070" fill="url(#a)"/>
+  <circle cx="1300" cy="1300" r="840" fill="url(#b)"/>
+  <circle cx="1300" cy="1300" r="610" fill="url(#c)"/>
+  <circle cx="1300" cy="1300" r="380" fill="url(#d)"/>
+  <circle cx="1300" cy="1300" r="150" fill="#febd1e"/>
+</svg>
