@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <title>Tapnpay Sunpass</title>
+    <meta charset="utf-8">
+    <base href="/demos/linguardia-landing/">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <link rel="icon" href="assets/images/tapnpay/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="assets/css/tapnpay.css">
+    <script defer src="assets/js/tapnpay.js"></script>
+</head>
+<body >
+<div class="panel">
+    <div class="panel__inner">
+        <a href="./" class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1442 420" class="logo__svg">
+                <path d="M613.18,181.25h43.19v17.64Q671.06,186.5,683,181.66a64.5,64.5,0,0,1,24.41-4.84q25.59,0,43.44,17.88,15,15.18,15,44.93V353.38H723.13V278q0-30.81-2.77-40.93t-9.62-15.4q-6.87-5.29-17-5.3a31.83,31.83,0,0,0-22.49,8.77q-9.39,8.78-13,24.26-1.89,8.06-1.89,34.92v69.06H613.18Z" class="logo__svg-green-part"/>
+                <path d="M32.32,117.34H54.47v63.91H89.59v19.14H54.47v153H32.32v-153H2.11V181.25H32.32Zm262,63.91V353.38H272.48V323.79q-13.94,16.93-31.25,25.47a84.43,84.43,0,0,1-37.89,8.55q-36.54,0-62.41-26.5t-25.87-64.47q0-37.17,26.11-63.6T204,176.82q21.21,0,38.37,9t30.14,27V181.25Zm-88.52,16.93a66.81,66.81,0,0,0-59,34.61,69.76,69.76,0,0,0,.08,69.53,67.91,67.91,0,0,0,25.05,25.83,65.36,65.36,0,0,0,33.74,9.25,69.14,69.14,0,0,0,34.44-9.17,64.12,64.12,0,0,0,25-24.81q8.78-15.65,8.77-35.24,0-29.85-19.67-49.93T205.79,198.18Zm138.67-16.93h22.15v31.64q13.11-18,30.18-27a80.3,80.3,0,0,1,38.09-9q36.66,0,62.74,26.42t26.08,63.6q0,38-25.84,64.47t-62.35,26.5a83.8,83.8,0,0,1-37.77-8.55q-17.22-8.53-31.13-25.47v92.55H344.46Zm88.59,16.93q-28.73,0-48.38,20.07T365,268.18q0,19.6,8.76,35.24a63.83,63.83,0,0,0,25.09,24.81,69.46,69.46,0,0,0,34.49,9.17,65,65,0,0,0,33.54-9.25,67.84,67.84,0,0,0,25-25.83,69.79,69.79,0,0,0,.07-69.53,66.68,66.68,0,0,0-58.95-34.61ZM687,97.5c-33.87,0-64.94,23.2-89.24,61.87,25.39-30.2,56.12-47.87,89.24-47.87s63.85,17.67,89.24,47.87C751.94,120.7,720.87,97.5,687,97.5Z" class="logo__svg-blue-part"/>
+                <path d="M850.34,181.25h22.15v31.64q13.11-18,30.19-27a80.23,80.23,0,0,1,38.08-9q36.68,0,62.75,26.42t26.07,63.6q0,38-25.84,64.47t-62.34,26.5a83.82,83.82,0,0,1-37.78-8.55q-17.22-8.53-31.13-25.47v92.55H850.34Zm88.59,16.93q-28.73,0-48.37,20.07t-19.65,49.93q0,19.6,8.76,35.24a63.9,63.9,0,0,0,25.09,24.81,69.46,69.46,0,0,0,34.49,9.17,65,65,0,0,0,33.54-9.25,67.84,67.84,0,0,0,25-25.83,69.79,69.79,0,0,0,.07-69.53,66.68,66.68,0,0,0-59-34.61Zm303.6-16.93V353.38h-21.84V323.79q-13.92,16.93-31.24,25.47a84.43,84.43,0,0,1-37.89,8.55q-36.54,0-62.41-26.5t-25.87-64.47q0-37.17,26.1-63.6t62.81-26.42q21.19,0,38.37,9t30.13,27V181.25ZM1154,198.18a66.81,66.81,0,0,0-59,34.61,69.76,69.76,0,0,0,.08,69.53,67.82,67.82,0,0,0,25,25.83,65.39,65.39,0,0,0,33.74,9.25,69.15,69.15,0,0,0,34.45-9.17,64.12,64.12,0,0,0,25-24.81q8.76-15.65,8.77-35.24,0-29.85-19.68-49.93T1154,198.18Zm119.84-16.93h23.41l59.16,132.55,57.44-132.55h23.57L1334.76,416.34h-23.4l33.14-76ZM687,50.5c-47.78,0-91.1,30-122.67,78.6C598,91.8,640.62,69.5,687,69.5s89,22.3,122.67,59.6C778.1,80.49,734.78,50.5,687,50.5Z" class="logo__svg-light-blue-part"/>
+                <path d="M861.53,125.57C820.28,63.89,757.41,24.5,687,24.5S553.72,63.89,512.47,125.57C550.16,52.25,614.26,4,687,4S823.84,52.25,861.53,125.57Z" class="logo__svg-orange-part"/>
+            </svg>
+        </a>
+        <button type="button" class="nav-switcher">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="12" class="svg">
+                <path d="M0 0h18v2H0zM0 5h18v2H0zM0 10h18v2H0z"></path>
+            </svg>
+        </button>
+        <nav class="nav">
+            <div class="nav__overlay"></div>
+            <div class="nav__panel">
+                <button type="button" class="nav__hide">
+                    <i class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" class="svg">
+                            <path d="M10.42 9l7.07 7.07-1.42 1.42L9 10.42l-7.07 7.07-1.42-1.42L7.58 9 .51 1.93 1.93.51 9 7.58 16.07.51l1.42 1.42L10.42 9z"></path>
+                        </svg>
+                    </i>
+                </button>
+                <div class="nav__scroll" role="navigation">
+                    <ul class="nav__list nav__list_underlined">
+                        <li><a href="#how_it_works" class="nav__link nav__link_underlined">How It Works</a></li>
+                        <li><a href="#contact_us" class="nav__link nav__link_underlined">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!--
+        <div class="language-switcher">
+            <button type="button" class="language-switcher__button">
+                <span class="language-switcher__current_language">En</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" class="language-switcher__triangle">
+                    <path fill="currentColor" d="M6,7.207,1.293,2.5A1,1,0,1,1,2.707,1.0859L6,4.3789l3.293-3.293A1,1,0,1,1,10.707,2.5Z"></path>
+                </svg>
+            </button>
+            <div class="language-switcher__popup">
+                <ul class="language-switcher__list">
+                    <li class="language-switcher__item" data-code="en" data-short-name="En">English</li>
+                    <li class="language-switcher__item" data-code="es" data-short-name="Es">Spanish</li>
+                </ul>
+            </div>
+        </div>
+        -->
+    </div>
+</div>
+<section class="section-main">
+    <div class="section-main__bg">
+        <div class="section-main__content">
+            <div class="section-main__text">
+                <h1 class="section-main__text-header">Paying tolls on your phone</h1>
+                <div class="section-main__text-description">
+                    tapNpay for toll roads is designed to make paying for tolls more convenient and accessible for non-tagged customers. 
+                    Simply take the toll road, approve daily charges via text message, and charge them to your payment method
+                </div>
+                <div class="section-main__text-links">
+                    <div class="get-started">                        
+                        <div class="get-started__label">I'm driving in</div>
+                        <div class="get-started__items">
+                            <a class="get-started__link" href="#">Dallas/Ft Worth</a>
+                            <a class="get-started__link" href="#">Florida</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-main__video">
+                <div class="section-main__video-nest">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 9" class="section-main__video-ratio"></svg>
+                    <div class="section-main__video-content">
+                        <div class="section-main__video-cover" style="background-image: url('assets/images/tapnpay/video_cover.png');"></div>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="section-steps" id="how_it_works">
+    <h2 class="section-header">Three Easy Steps</h2>
+    <div class="section-steps__items">
+        <div class="section-steps__card">
+            <img class="section-steps__card-image" src="assets/images/tapnpay/step_1.svg" alt="Step 1">
+            <div class="section-steps__card-header">Register</div>
+            <div class="section-steps__card-description">Sign up and choose your preferred payment method. We accept credit and debit cards, Google pay, Apple Pay, and PayPal</div>
+        </div>
+        <div class="section-steps__arrow"></div>
+        <div class="section-steps__card">
+            <img class="section-steps__card-image" src="assets/images/tapnpay/step_1.svg" alt="Step 2">
+            <div class="section-steps__card-header">Drive</div>
+            <div class="section-steps__card-description">It’s time to hit the road! After you’ve completed your registration, drive on the toll roads</div>
+        </div>
+        <div class="section-steps__arrow"></div>
+        <div class="section-steps__card">
+            <img class="section-steps__card-image" src="assets/images/tapnpay/step_1.svg" alt="Step 3">
+            <div class="section-steps__card-header">Approve</div>
+            <div class="section-steps__card-description">You will receive a text letting you know you have used the toll roads. Review your toll charges and pay them with your selected payment method</div>
+        </div>
+    </div>
+</section>
+<section class="section-feedback" id="contact_us">
+    <h2 class="section-header">Contact Us</h2>
+    <div class="section-subheader">Our staff is here when you need us. Whether you have questions on how to subscribe to tapNpay or questions on your invoice.</div>
+    <div class="section-feedback__content">
+        <div class="section-feedback__message"></div>
+        <fieldset class="section-feedback__fieldset">            
+            <form method="POST" action="/" class="section-feedback__form">
+                <input type="text" class="input section-feedback__input" data-error-class="input_has-error" name="first_name" placeholder="First name" required autocomplete="name">
+                <input type="text" class="input section-feedback__input" data-error-class="input_has-error" name="last_name" placeholder="Last name" required autocomplete="additional-name">
+                <input type="email" class="input section-feedback__input" data-error-class="input_has-error" name="email" placeholder="Email" required autocomplete="email">
+                <input type="tel" class="input section-feedback__input" data-error-class="input_has-error" name="phone" placeholder="Phone number" required autocomplete="tel">
+                <select class="select section-feedback__select" data-error-class="select_has-error" name="brand" required>
+                    <option value="">— Select the state you are driving in —</option>
+                    <option value="NTTA">Dallas/Ft Worth</option>
+                    <option value="SUNPASS">Florida</option>
+                    <option value="FASTRAK">California</option>
+                </select>
+                <textarea class="textarea section-feedback__textarea" data-error-class="textarea_has-error" name="comment" placeholder="Your question" required></textarea>
+                <button type="submit" class="button button_blue section-feedback__button">
+                    <span class="button__caption">Get Started</span>
+                    <span class="button__spinner">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">
+                            <path d="M14,27A13,13,0,1,1,27,14,13.0144,13.0144,0,0,1,14,27ZM14,3A11,11,0,1,0,25,14,11.0125,11.0125,0,0,0,14,3Z" style="fill: currentColor; opacity: 0.2;"></path>
+                            <path d="M6.52,24.6333A13.0008,13.0008,0,0,1,14,1V3A11.0007,11.0007,0,0,0,7.6719,22.9985Z" style="fill: currentColor;"></path>
+                        </svg>
+                    </span>
+                </button>
+            </form>
+        </fieldset>
+    </div>
+</section>
+<section class="section-getting-started">
+    <div class="section-getting-started__content">
+        <div class="section-getting-started__text">
+            <h2 class="section-getting-started__header">Get Started</h2>
+            <h2 class="section-getting-started__description">Click the button on the right and enter your phone number there to start the process</h2>
+        </div>
+        <div class="section-getting-started__links">
+            <div class="get-started">                        
+                <div class="get-started__label">I'm driving in</div>
+                <div class="get-started__items">
+                    <a class="get-started__link" href="#">Dallas/Ft Worth</a>
+                    <a class="get-started__link" href="#">Florida</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<footer class="footer">
+    <div class="footer__content">
+        <div class="footer__item">
+            <div class="footer__copyright">Copyright © 2022 tapNpay Inc. All rights reserved</div>
+        </div>
+        <div class="footer__item footer__item_right">
+            <a href="#" class="footer__link">Terms & Conditions</a>
+        </div>
+        <div class="footer__item footer__item_right">
+            <a href="#" class="footer__link">Privacy Policy</a>
+        </div>        
+    </div>
+</footer>
+</body>
+</html>
