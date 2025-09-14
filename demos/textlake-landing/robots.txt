@@ -1,0 +1,3 @@
+User-agent: *
+Host: https://textlake.com
+Sitemap: https://textlake.com/sitemap.xml
