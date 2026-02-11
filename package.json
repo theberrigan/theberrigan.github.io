@@ -8,6 +8,6 @@
   "author": "Berrigan",
   "license": "ISC",
   "devDependencies": {
-    "browser-sync": "^2.18.13"
+    "browser-sync": "^2.29.3"
   }
 }
